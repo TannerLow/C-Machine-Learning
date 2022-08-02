@@ -96,3 +96,33 @@ bool setMatrixElement(Matrix* matrix, const size_t row, const size_t col, const 
     }
     return success;
 }
+
+bool areEqualSizes(Dimensions2D a, Dimensions2D b) {
+    return a.rows == b.rows && a.cols == b.cols;
+}
+
+bool areEqualVectors(Vector* a, Vector* b) {
+    bool equal = false;
+    if (a->size == b->size) {
+        for (size_t i = 0; i < a->size; i++) {
+            if (a->data[i] != b->data[i]) {
+                return false;
+            }
+        }
+        equal = true;
+    }
+    return equal;
+}
+
+bool areEqualMatrices(Matrix* a, Matrix* b) {
+    bool equal = false;
+    if (areEqualSizes(getDimensions(a), getDimensions(b))) {
+        for (size_t i = 0; i < a->rowSize; i++) {
+            if (!areEqualVectors(&a->columns[i], &b->columns[i])) {
+                return false;
+            }
+        }
+        equal = true;
+    }
+    return equal;
+}

@@ -5,7 +5,7 @@
 #include "MatrixMath.h"
 
 void logTestError(const char* msg, int line);
-bool loadMatricesFromFile(const char* filename, Matrix** output, unsigned int& size);
+bool loadMatricesFromFile(const char* filename, Matrix** output, unsigned int* size);
 void displayMatrix(Matrix* m);
 void dotProductTest();
 
@@ -18,15 +18,15 @@ void logTestError(const char* msg, int line) {
     printf("%s (%s, %d)\n", msg, __FILE__, line);
 }
 
-bool loadMatricesFromFile(const char* filename, Matrix** output, unsigned int& size) {
+bool loadMatricesFromFile(const char* filename, Matrix** output, unsigned int* size) {
     FILE* filePtr = fopen(filename, "r");
     
     if (filePtr == NULL) {
         return false;
     }
 
-    fscanf(filePtr, "%d", &size);
-    
+    fscanf(filePtr, "%d", size);
+    unsigned int N = *size;
 
     while (N--) {
         Matrix a, b, c;
@@ -98,7 +98,7 @@ void dotProductTest() {
     fscanf(filePtr, "%d", &N);
 
     while (N--) {
-        Matrix a, b, c;
+        Matrix a, b, actual, expected;
 
         int resultRows, resultCols;
         int aRows, aCols;
@@ -139,21 +139,26 @@ void dotProductTest() {
             printf("\n");
         }
 
+        if (!createMatrix(&expected, resultRows, resultCols)) {
+            logTestError("Failed to create matrix", __LINE__);
+        }
+
         printf("Rows: %d, Cols: %d\n", resultRows, resultCols);
         for (int row = 0; row < resultRows; row++) {
             for(int col = 0; col < resultCols; col++) {
                 double value;
                 fscanf(filePtr, "%lf", &value);
                 printf("%lf ", value);
+                setMatrixElement(&expected, row, col, value);
             }
             printf("\n");
         }
 
-        if (!createMatrix(&c, resultRows, resultCols)) {
+        if (!createMatrix(&actual, resultRows, resultCols)) {
             logTestError("Failed to create matrix", __LINE__);
         }
 
-        if(!dotProduct(&a, &b, &c)) {
+        if(!dotProduct(&a, &b, &actual)) {
             logTestError("Failed to perform dot product", __LINE__);
         }
 
@@ -162,7 +167,10 @@ void dotProductTest() {
         printf("Matrix B:\n");
         displayMatrix(&b);
         printf("Result:\n");
-        displayMatrix(&c);
+        displayMatrix(&actual);
+
+        bool success = areEqualMatrices(&expected, &actual);
+        printf("Actual equals expected: %s\n", success ? "true" : "false");
     }
 
     fclose(filePtr);

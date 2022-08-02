@@ -1,8 +1,5 @@
 #include "MatrixMath.h"
 
-bool areEqualSizes(Dimensions2D a, Dimensions2D b) {
-    return a.rows == b.rows && a.cols == b.cols;
-}
 
 bool dotProduct(Matrix* a, Matrix* b, Matrix* result) {
     // input validation

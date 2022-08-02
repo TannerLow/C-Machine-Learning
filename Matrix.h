@@ -33,4 +33,8 @@ bool isValidCoordinate(const Matrix* matrix, const size_t row, const size_t col)
 double getMatrixElement(const Matrix* matrix, const size_t row, const size_t col);
 bool setMatrixElement(Matrix* matrix, const size_t row, const size_t col, const double value);
 
+bool areEqualSizes(Dimensions2D a, Dimensions2D b);
+bool areEqualVectors(Vector* a, Vector* b);
+bool areEqualMatrices(Matrix* a, Matrix* b);
+
 #endif // MATRIX_H
