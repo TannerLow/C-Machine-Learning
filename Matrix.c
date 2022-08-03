@@ -1,6 +1,7 @@
 #include "Matrix.h"
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 bool createVector(Vector* vector, const size_t size) {
     vector->data = (double*) malloc(sizeof(double) * size);
@@ -48,7 +49,9 @@ bool createMatrixColumns(Matrix* matrix) {
 }
 
 bool createMatrix(Matrix* matrix, const size_t rows, const size_t cols) {
-    matrix->columns = (Vector*) malloc(sizeof(Vector) * cols);
+    if (matrix == NULL) return false; // cant set columns for a nullptr
+
+    matrix->columns = (Vector*) malloc(cols * sizeof(Vector));
     bool success = matrix->columns != NULL;
     if (success) {
         matrix->rowSize = cols;

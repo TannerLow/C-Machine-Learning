@@ -4,83 +4,27 @@
 #include "Matrix.h"
 #include "MatrixMath.h"
 
+typedef struct {
+    Matrix* matrices;
+    size_t size;
+} MatrixArray;
+
 void logTestError(const char* msg, int line);
-bool loadMatricesFromFile(const char* filename, Matrix** output, unsigned int* size);
 void displayMatrix(Matrix* m);
-void dotProductTest();
+bool initializeMatrixArray(MatrixArray* array, const size_t size);
+void freeMatrixArray(MatrixArray* array);
+bool initializeMatrixSet(MatrixArray** set, const size_t size);
+void freeMatrixArraySet(MatrixArray** set, const size_t size);
+bool loadMatricesFromFile(const char* filename, MatrixArray** array, size_t* numOfSets);
+bool dotProductTest();
 
 void test() {
-    dotProductTest();
+    printf("Dot Product Test: %s\n", dotProductTest() ? "sucess" : "FAILURE");
     printf("Done Testing\n");
 }
 
 void logTestError(const char* msg, int line) {
     printf("%s (%s, %d)\n", msg, __FILE__, line);
-}
-
-bool loadMatricesFromFile(const char* filename, Matrix** output, unsigned int* size) {
-    FILE* filePtr = fopen(filename, "r");
-    
-    if (filePtr == NULL) {
-        return false;
-    }
-
-    fscanf(filePtr, "%d", size);
-    unsigned int N = *size;
-
-    while (N--) {
-        Matrix a, b, c;
-
-        int resultRows, resultCols;
-        int aRows, aCols;
-
-        fscanf(filePtr, "%d %d", &aRows, &aCols);
-        resultRows = aRows;
-        if (!createMatrix(&a, aRows, aCols)) {
-            logTestError("Failed to create matrix", __LINE__);
-        }
-
-        printf("Rows: %d, Cols: %d\n", aRows, aCols);
-        for (int row = 0; row < aRows; row++) {
-            for(int col = 0; col < aCols; col++) {
-                double value;
-                fscanf(filePtr, "%lf", &value);
-                printf("%lf ", value);
-                setMatrixElement(&a, row, col, value);
-            }
-            printf("\n");
-        }
-
-        int bRows, bCols;
-
-        fscanf(filePtr, "%d %d", &bRows, &bCols);
-        resultCols = bCols;
-        if (!createMatrix(&b, bRows, bCols)) {
-            logTestError("Failed to create matrix", __LINE__);
-        }
-
-        printf("Rows: %d, Cols: %d\n", bRows, bCols);
-        for (int row = 0; row < bRows; row++) {
-            for(int col = 0; col < bCols; col++) {
-                double value;
-                fscanf(filePtr, "%lf", &value);
-                printf("%lf ", value);
-                setMatrixElement(&b, row, col, value);
-            }
-            printf("\n");
-        }
-
-        printf("Rows: %d, Cols: %d\n", resultRows, resultCols);
-        for (int row = 0; row < resultRows; row++) {
-            for(int col = 0; col < resultCols; col++) {
-                double value;
-                fscanf(filePtr, "%lf", &value);
-                printf("%lf ", value);
-            }
-            printf("\n");
-        }
-    }
-    // free output if possible then save the loaded matrixes
 }
 
 void displayMatrix(Matrix* m) {
@@ -92,86 +36,167 @@ void displayMatrix(Matrix* m) {
     }
 }
 
-void dotProductTest() {
-    FILE* filePtr = fopen("dot_product.test", "r");
-    int N = 0;
-    fscanf(filePtr, "%d", &N);
+// pointer to MatrixArray
+bool initializeMatrixArray(MatrixArray* array, const size_t size) {
+    if (array == NULL) return false; // can't populate something that doesn't exist
 
-    while (N--) {
-        Matrix a, b, actual, expected;
+    array->matrices = (Matrix*) malloc(size * sizeof(Matrix));
 
-        int resultRows, resultCols;
-        int aRows, aCols;
+    if (array->matrices == NULL) {
+        return false; // unable to allocate space for incoming matrices
+    }
 
-        fscanf(filePtr, "%d %d", &aRows, &aCols);
-        resultRows = aRows;
-        if (!createMatrix(&a, aRows, aCols)) {
-            logTestError("Failed to create matrix", __LINE__);
-        }
+    array->size = size;
 
-        printf("Rows: %d, Cols: %d\n", aRows, aCols);
-        for (int row = 0; row < aRows; row++) {
-            for(int col = 0; col < aCols; col++) {
-                double value;
-                fscanf(filePtr, "%lf", &value);
-                printf("%lf ", value);
-                setMatrixElement(&a, row, col, value);
+    return true;
+}
+
+// pointer to MatrixArray
+void freeMatrixArray(MatrixArray* array) {
+    if (array != NULL) {
+        if (array->matrices != NULL) {
+            for (size_t i = 0; i < array->size; i++) {
+                deleteMatrix(&array->matrices[i]);
             }
-            printf("\n");
+            free(array->matrices);
+        }
+        free(array);
+    }
+}
+
+// Does nto initialize MatrixArray's, just zeroes them out to be set later
+// pointer to MatrixArray[]
+bool initializeMatrixSet(MatrixArray** set, const size_t size) {
+    if (set == NULL) return false; // can't populate something that doesn't exist
+
+    *set = (MatrixArray*) malloc(size * sizeof(MatrixArray));
+
+    if (*set == NULL) {
+        return false; // unable to allocate space for incoming matrices
+    }
+
+    MatrixArray emptyArray = { NULL, 0 };
+    for (size_t i = 0; i < size; i++) {
+        *set[i] = emptyArray;
+    }
+
+    return true;
+}
+
+// pointer to MatrixArray[]
+void freeMatrixArraySet(MatrixArray** set, const size_t size) {
+    if (set != NULL && *set != NULL) {
+        for (size_t i = 0; i < size; i++) {
+            freeMatrixArray(&(*set[i]));
+        }
+        free(*set);
+    }
+}
+
+bool loadMatricesFromFile(const char* filename, MatrixArray** array, size_t* numOfArrays) {
+    FILE* filePtr = fopen(filename, "r");
+    
+    if (filePtr == NULL) {
+        return false; // unable to open file
+    }
+
+    // create array of MatrixArray's
+    fscanf(filePtr, "%llu", numOfArrays);
+    if (!initializeMatrixSet(array, *numOfArrays)) {
+        return false; // failed to allocate space for MatrixArraySet/incoming matrices
+    }
+
+    // for each MatrtixArray in the set of MatrixArray's
+    for (size_t i = 0; i < *numOfArrays; i++) {
+        // get desired size of MatrixArray
+        size_t n;
+        fscanf(filePtr, "%llu", &n);
+
+        // allocate memory for the matrices in the MatrixArray
+        MatrixArray* matrixArray = (*array) + i;
+        if (!initializeMatrixArray(matrixArray, n)) {
+            freeMatrixArraySet(array, *numOfArrays);
+            return false; // error when initializing a MatrixArray in the MatrixArraySet
         }
 
-        int bRows, bCols;
+        for (size_t j = 0; j < matrixArray->size; j++) {
+            size_t rows, cols;
+            fscanf(filePtr, "%llu %llu", &rows, &cols);
 
-        fscanf(filePtr, "%d %d", &bRows, &bCols);
-        resultCols = bCols;
-        if (!createMatrix(&b, bRows, bCols)) {
-            logTestError("Failed to create matrix", __LINE__);
-        }
+            Matrix* matrix = &(matrixArray->matrices[j]);
 
-        printf("Rows: %d, Cols: %d\n", bRows, bCols);
-        for (int row = 0; row < bRows; row++) {
-            for(int col = 0; col < bCols; col++) {
-                double value;
-                fscanf(filePtr, "%lf", &value);
-                printf("%lf ", value);
-                setMatrixElement(&b, row, col, value);
+            if (!createMatrix(matrix, rows, cols)) {
+                logTestError("Failed to create matrix", __LINE__);
+                freeMatrixArraySet(array, *numOfArrays);
+                return false; // Error with call to createMatrix
             }
-            printf("\n");
-        }
 
-        if (!createMatrix(&expected, resultRows, resultCols)) {
-            logTestError("Failed to create matrix", __LINE__);
-        }
+            for (int row = 0; row < rows; row++) {
+                for(int col = 0; col < cols; col++) {
+                    double value;
+                    fscanf(filePtr, "%lf", &value);
+                    if (!setMatrixElement(matrix, row, col, value)) {
+                        freeMatrixArraySet(array, *numOfArrays);
+                        return false;
+                    }
 
-        printf("Rows: %d, Cols: %d\n", resultRows, resultCols);
-        for (int row = 0; row < resultRows; row++) {
-            for(int col = 0; col < resultCols; col++) {
-                double value;
-                fscanf(filePtr, "%lf", &value);
-                printf("%lf ", value);
-                setMatrixElement(&expected, row, col, value);
+                }
             }
-            printf("\n");
+
+            printf("Rows: %d, Cols: %d\n", rows, cols);
+            displayMatrix(matrix);
         }
-
-        if (!createMatrix(&actual, resultRows, resultCols)) {
-            logTestError("Failed to create matrix", __LINE__);
-        }
-
-        if(!dotProduct(&a, &b, &actual)) {
-            logTestError("Failed to perform dot product", __LINE__);
-        }
-
-        printf("Matrix A:\n");
-        displayMatrix(&a);
-        printf("Matrix B:\n");
-        displayMatrix(&b);
-        printf("Result:\n");
-        displayMatrix(&actual);
-
-        bool success = areEqualMatrices(&expected, &actual);
-        printf("Actual equals expected: %s\n", success ? "true" : "false");
     }
 
     fclose(filePtr);
+    return true;
+}
+
+bool dotProductTest() {
+    MatrixArray* matrixArrays;
+    size_t size;
+
+    if (!loadMatricesFromFile("tests/dot_product.test", &matrixArrays, &size)) {
+        printf("Failed to load test data from file: tester.c,%d\n", __LINE__);
+        return false;
+    }
+
+    printf("Beginning dot product testing: %d test case(s)\n", size);
+
+    for (size_t testCase = 0; testCase < size; testCase++) {
+        Matrix* a = &matrixArrays[testCase].matrices[0];
+        Matrix* b = &matrixArrays[testCase].matrices[1];
+        Matrix* expected = &matrixArrays[testCase].matrices[2];
+
+        Matrix actual;
+        size_t resultRows = expected->columnSize;
+        size_t resultCols = expected->rowSize;
+
+        if (!createMatrix(&actual, resultRows, resultCols)) {
+            logTestError("Failed to create matrix", __LINE__);
+            freeMatrixArraySet(&matrixArrays, size);
+            return false;
+        }
+
+        if(!dotProduct(a, b, &actual)) {
+            logTestError("Failed to perform dot product", __LINE__);
+            freeMatrixArraySet(&matrixArrays, size);
+            return false;
+        }
+
+        printf("Matrix A:\n");
+        displayMatrix(a);
+        printf("Matrix B:\n");
+        displayMatrix(b);
+        printf("Result:\n");
+        displayMatrix(&actual);
+
+        bool success = areEqualMatrices(expected, &actual);
+        printf("Actual equals expected: %s\n", success ? "true" : "false");
+        if (!success) {
+            return false;
+        }
+    }
+
+    return true;
 }
