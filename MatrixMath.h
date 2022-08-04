@@ -9,5 +9,6 @@ bool dotProductTransposeB(Matrix* a, Matrix* b, Matrix* result);
 bool elementWiseMultiplication(Matrix* a, Matrix* b, Matrix* result);
 bool matrixAddition(Matrix* a, Matrix* b, Matrix* result);
 bool matrixSubtraction(Matrix* a, Matrix* b, Matrix* result);
+bool scaleMatrix(Matrix* a, double scalar, Matrix* result);
 
 #endif // MATRIX_MATH_H

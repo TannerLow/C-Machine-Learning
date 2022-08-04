@@ -1,5 +1,6 @@
 output_file := 
 delete := 
+tests := $(wildcard tests/*.c)
 
 ifeq ($(OS), Windows_NT)
 	delete := del /f
@@ -10,7 +11,7 @@ else
 endif
 
 default:
-	gcc $(wildcard *.c) -o $(output_file)
+	gcc $(wildcard *.c) $(tests) -o $(output_file)
 
 clean:
 	$(delete) main.exe

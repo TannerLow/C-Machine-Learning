@@ -1,8 +1,8 @@
 #include "tester.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "Matrix.h"
-#include "MatrixMath.h"
+#include "../Matrix.h"
+#include "../MatrixMath.h"
 
 typedef struct {
     Matrix* matrices;
@@ -17,9 +17,11 @@ bool initializeMatrixSet(MatrixArray** set, const size_t size);
 void freeMatrixArraySet(MatrixArray** set, const size_t size);
 bool loadMatricesFromFile(const char* filename, MatrixArray** array, size_t* numOfSets);
 bool dotProductTest();
+bool matrixAdditionTest();
 
 void test() {
-    printf("Dot Product Test: %s\n", dotProductTest() ? "sucess" : "FAILURE");
+    printf("Dot Product Test: %s\n", dotProductTest() ? "success" : "FAILURE");
+    printf("Matrix Addition Test: %s\n", matrixAdditionTest() ? "success" : "FAILURE");
     printf("Done Testing\n");
 }
 
@@ -156,8 +158,8 @@ bool dotProductTest() {
     MatrixArray* matrixArrays;
     size_t size;
 
-    if (!loadMatricesFromFile("tests/dot_product.test", &matrixArrays, &size)) {
-        printf("Failed to load test data from file: tester.c,%d\n", __LINE__);
+    if (!loadMatricesFromFile("tests/tests_data/dot_product.test", &matrixArrays, &size)) {
+        logTestError("Failed to load test data from file", __LINE__);
         return false;
     }
 
@@ -180,6 +182,55 @@ bool dotProductTest() {
 
         if(!dotProduct(a, b, &actual)) {
             logTestError("Failed to perform dot product", __LINE__);
+            freeMatrixArraySet(&matrixArrays, size);
+            return false;
+        }
+
+        printf("Matrix A:\n");
+        displayMatrix(a);
+        printf("Matrix B:\n");
+        displayMatrix(b);
+        printf("Result:\n");
+        displayMatrix(&actual);
+
+        bool success = areEqualMatrices(expected, &actual);
+        printf("Actual equals expected: %s\n", success ? "true" : "false");
+        if (!success) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool matrixAdditionTest() {
+    MatrixArray* matrixArrays;
+    size_t size;
+
+    if (!loadMatricesFromFile("tests/tests_data/matrix_addition.test", &matrixArrays, &size)) {
+        logTestError("Failed to load test data from file", __LINE__);
+        return false;
+    }
+
+    printf("Beginning matrix addition testing: %d test case(s)\n", size);
+
+    for (size_t testCase = 0; testCase < size; testCase++) {
+        Matrix* a = &matrixArrays[testCase].matrices[0];
+        Matrix* b = &matrixArrays[testCase].matrices[1];
+        Matrix* expected = &matrixArrays[testCase].matrices[2];
+
+        Matrix actual;
+        size_t resultRows = expected->columnSize;
+        size_t resultCols = expected->rowSize;
+
+        if (!createMatrix(&actual, resultRows, resultCols)) {
+            logTestError("Failed to create matrix", __LINE__);
+            freeMatrixArraySet(&matrixArrays, size);
+            return false;
+        }
+
+        if(!matrixAddition(a, b, &actual)) {
+            logTestError("Failed to perform matrix addition", __LINE__);
             freeMatrixArraySet(&matrixArrays, size);
             return false;
         }

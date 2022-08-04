@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include "Matrix.h"
 #include "MatrixMath.h"
-#include "tester.h"
-
-void test();
+#include "tests/tester.h"
 
 int main() {
     test();
