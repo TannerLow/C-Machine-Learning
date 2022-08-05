@@ -2,17 +2,25 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <assert.h>
 
 bool createVector(Vector* vector, const size_t size) {
+    assert(vector != NULL);
+
+    if (vector == NULL) return false;
+
     vector->data = (double*) malloc(sizeof(double) * size);
     bool success = vector->data != NULL;
     if (success) {
         vector->size = size;
     }
+
     return success;
 }
 
 void deleteVector(Vector* vector) {
+    assert(vector != NULL);
+
     if (vector->data != NULL) {
         free(vector->data);
         vector->data = NULL;
@@ -21,33 +29,46 @@ void deleteVector(Vector* vector) {
 }
 
 void deleteMatrix(Matrix* matrix) {
-    for (size_t i = 0; i < matrix->rowSize; i++) {
-        Vector* column = &matrix->columns[i];
-        if (column->data != NULL) {
-            deleteVector(column);
-        }
-    }
+    assert(matrix != NULL);
 
-    matrix->columnSize = 0;
-    matrix->rowSize = 0;
-    free(matrix->columns);
-    matrix->columns = NULL;
+    if (matrix != NULL) {
+        for (size_t i = 0; i < matrix->rowSize; i++) {
+            Vector* column = &matrix->columns[i];
+            if (column->data != NULL) {
+                deleteVector(column);
+            }
+        }
+
+        matrix->columnSize = 0;
+        matrix->rowSize = 0;
+        free(matrix->columns);
+        matrix->columns = NULL;
+    }
 }
 
 bool createMatrixColumns(Matrix* matrix) {
-    for (size_t i = 0; i < matrix->rowSize; i++) {
-        Vector* column = &matrix->columns[i];
-        if (!createVector(column, matrix->columnSize)) {
-            return false; // at least 1 vector creation failed
+    assert(matrix != NULL);
+
+    bool success = false;
+    if (matrix != NULL) {
+        for (size_t i = 0; i < matrix->rowSize; i++) {
+            Vector* column = &matrix->columns[i];
+            if (!createVector(column, matrix->columnSize)) {
+                return false; // at least 1 vector creation failed
+            }
+            for (size_t row = 0; row < column->size; row++) {
+                column->data[row] = 0;
+            }
         }
-        for (size_t row = 0; row < column->size; row++) {
-            column->data[row] = 0;
-        }
+        success = true; // all vector successfully created
     }
-    return true; // all vector successfully created
+
+    return success;
 }
 
 bool createMatrix(Matrix* matrix, const size_t rows, const size_t cols) {
+    assert(matrix != NULL);
+
     if (matrix == NULL) return false; // cant set columns for a nullptr
 
     matrix->columns = (Vector*) malloc(cols * sizeof(Vector));
@@ -66,6 +87,8 @@ bool createMatrix(Matrix* matrix, const size_t rows, const size_t cols) {
 }
 
 Dimensions2D getDimensions(Matrix* matrix) {
+    assert(matrix != NULL);
+
     Dimensions2D dimensions = { 0, 0 };
     if (matrix != NULL) {
         dimensions.rows = matrix->columnSize;
@@ -75,10 +98,12 @@ Dimensions2D getDimensions(Matrix* matrix) {
 }
 
 bool isValidCoordinate(const Matrix* matrix, const size_t row, const size_t col) {
-    return row < matrix->columnSize && col < matrix->rowSize;
+    assert(matrix != NULL);
+    return matrix != NULL && row < matrix->columnSize && col < matrix->rowSize;
 }
 
 double getMatrixElement(const Matrix* matrix, const size_t row, const size_t col) {
+    assert(matrix != NULL);
     double value = 0;
     if (matrix != NULL && matrix->columns != NULL) {
         if (isValidCoordinate(matrix, row, col)) {
@@ -89,6 +114,7 @@ double getMatrixElement(const Matrix* matrix, const size_t row, const size_t col
 }
 
 bool setMatrixElement(Matrix* matrix, const size_t row, const size_t col, const double value) {
+    assert(matrix != NULL);
     bool success = false;
     if (matrix != NULL && matrix->columns != NULL) {
         if (isValidCoordinate(matrix, row, col)) {
@@ -104,6 +130,9 @@ bool areEqualSizes(Dimensions2D a, Dimensions2D b) {
 }
 
 bool areEqualVectors(Vector* a, Vector* b) {
+    if (a == b) return true;
+    if (a == NULL || b == NULL) return false;
+
     bool equal = false;
     if (a->size == b->size) {
         for (size_t i = 0; i < a->size; i++) {
@@ -117,6 +146,9 @@ bool areEqualVectors(Vector* a, Vector* b) {
 }
 
 bool areEqualMatrices(Matrix* a, Matrix* b) {
+    if (a == b) return true;
+    if (a == NULL || b == NULL) return false;
+
     bool equal = false;
     if (areEqualSizes(getDimensions(a), getDimensions(b))) {
         for (size_t i = 0; i < a->rowSize; i++) {
