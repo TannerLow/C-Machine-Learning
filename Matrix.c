@@ -21,7 +21,7 @@ void deleteVector(Vector* vector) {
 }
 
 void deleteMatrix(Matrix* matrix) {
-    for (size_t i = 0; i < matrix->columnSize; i++) {
+    for (size_t i = 0; i < matrix->rowSize; i++) {
         Vector* column = &matrix->columns[i];
         if (column->data != NULL) {
             deleteVector(column);
@@ -30,7 +30,6 @@ void deleteMatrix(Matrix* matrix) {
 
     matrix->columnSize = 0;
     matrix->rowSize = 0;
-
     free(matrix->columns);
     matrix->columns = NULL;
 }

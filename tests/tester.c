@@ -18,10 +18,12 @@ void freeMatrixArraySet(MatrixArray** set, const size_t size);
 bool loadMatricesFromFile(const char* filename, MatrixArray** array, size_t* numOfSets);
 bool dotProductTest();
 bool matrixAdditionTest();
+bool matrixScaleTest();
 
 void test() {
     printf("Dot Product Test: %s\n", dotProductTest() ? "success" : "FAILURE");
     printf("Matrix Addition Test: %s\n", matrixAdditionTest() ? "success" : "FAILURE");
+    printf("Matrix Scalar Test: %s\n", matrixScaleTest() ? "success" : "FAILURE");
     printf("Done Testing\n");
 }
 
@@ -61,8 +63,9 @@ void freeMatrixArray(MatrixArray* array) {
                 deleteMatrix(&array->matrices[i]);
             }
             free(array->matrices);
+            array->matrices = NULL;
         }
-        free(array);
+        //free(array);
     }
 }
 
@@ -92,6 +95,7 @@ void freeMatrixArraySet(MatrixArray** set, const size_t size) {
             freeMatrixArray(&(*set[i]));
         }
         free(*set);
+        *set = NULL;
     }
 }
 
@@ -165,6 +169,7 @@ bool dotProductTest() {
 
     printf("Beginning dot product testing: %d test case(s)\n", size);
 
+    bool testSuccess = true;
     for (size_t testCase = 0; testCase < size; testCase++) {
         Matrix* a = &matrixArrays[testCase].matrices[0];
         Matrix* b = &matrixArrays[testCase].matrices[1];
@@ -176,14 +181,15 @@ bool dotProductTest() {
 
         if (!createMatrix(&actual, resultRows, resultCols)) {
             logTestError("Failed to create matrix", __LINE__);
-            freeMatrixArraySet(&matrixArrays, size);
-            return false;
+            testSuccess = false;
+            break;
         }
 
         if(!dotProduct(a, b, &actual)) {
             logTestError("Failed to perform dot product", __LINE__);
-            freeMatrixArraySet(&matrixArrays, size);
-            return false;
+            deleteMatrix(&actual);
+            testSuccess = false;
+            break;
         }
 
         printf("Matrix A:\n");
@@ -196,11 +202,14 @@ bool dotProductTest() {
         bool success = areEqualMatrices(expected, &actual);
         printf("Actual equals expected: %s\n", success ? "true" : "false");
         if (!success) {
-            return false;
+            deleteMatrix(&actual);
+            testSuccess = false;
+            break;
         }
     }
 
-    return true;
+    freeMatrixArraySet(&matrixArrays, size);
+    return testSuccess;
 }
 
 bool matrixAdditionTest() {
@@ -214,6 +223,7 @@ bool matrixAdditionTest() {
 
     printf("Beginning matrix addition testing: %d test case(s)\n", size);
 
+    bool testSuccess = true;
     for (size_t testCase = 0; testCase < size; testCase++) {
         Matrix* a = &matrixArrays[testCase].matrices[0];
         Matrix* b = &matrixArrays[testCase].matrices[1];
@@ -225,14 +235,15 @@ bool matrixAdditionTest() {
 
         if (!createMatrix(&actual, resultRows, resultCols)) {
             logTestError("Failed to create matrix", __LINE__);
-            freeMatrixArraySet(&matrixArrays, size);
-            return false;
+            testSuccess = false;
+            break;
         }
 
         if(!matrixAddition(a, b, &actual)) {
             logTestError("Failed to perform matrix addition", __LINE__);
-            freeMatrixArraySet(&matrixArrays, size);
-            return false;
+            deleteMatrix(&actual);
+            testSuccess = false;
+            break;
         }
 
         printf("Matrix A:\n");
@@ -245,9 +256,63 @@ bool matrixAdditionTest() {
         bool success = areEqualMatrices(expected, &actual);
         printf("Actual equals expected: %s\n", success ? "true" : "false");
         if (!success) {
-            return false;
+            deleteMatrix(&actual);
+            testSuccess = false;
+            break;
         }
     }
 
-    return true;
+    freeMatrixArraySet(&matrixArrays, size);
+    return testSuccess;
+}
+
+bool matrixScaleTest() {
+    MatrixArray* matrixArrays;
+    size_t size;
+
+    if (!loadMatricesFromFile("tests/tests_data/matrix_scale.test", &matrixArrays, &size)) {
+        logTestError("Failed to load test data from file", __LINE__);
+        return false;
+    }
+
+    printf("Beginning matrix scalar testing: %d test case(s)\n", size);
+
+    bool testSuccess = true;
+    for (size_t testCase = 0; testCase < size; testCase++) {
+        Matrix* a = &matrixArrays[testCase].matrices[0];
+        Matrix* expected = &matrixArrays[testCase].matrices[1];
+
+        Matrix actual;
+        size_t resultRows = expected->columnSize;
+        size_t resultCols = expected->rowSize;
+
+        if (!createMatrix(&actual, resultRows, resultCols)) {
+            logTestError("Failed to create matrix", __LINE__);
+            testSuccess = false;
+            break;
+        }
+
+        if(!scaleMatrix(a, 5, &actual)) {
+            logTestError("Failed to apply scalar to matrix", __LINE__);
+            deleteMatrix(&actual);
+            testSuccess = false;
+            break;
+        }
+
+        printf("Matrix A:\n");
+        displayMatrix(a);
+        printf("Result:\n");
+        displayMatrix(&actual);
+
+        bool success = areEqualMatrices(expected, &actual);
+        printf("Actual equals expected: %s\n", success ? "true" : "false");
+        if (!success) {
+            deleteMatrix(&actual);
+            testSuccess = false;
+            break;
+        }
+    }
+
+    freeMatrixArraySet(&matrixArrays, size);
+    return testSuccess;
 }
