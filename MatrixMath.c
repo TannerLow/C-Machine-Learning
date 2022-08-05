@@ -35,7 +35,30 @@ bool dotProductTransposeB(Matrix* a, Matrix* b, Matrix* result) {
 }
 
 bool elementWiseMultiplication(Matrix* a, Matrix* b, Matrix* result) {
-    return false;
+    // input validation
+    if (a == NULL || b == NULL || result == NULL) return false; // invalid operands 
+
+    if (!areEqualSizes(getDimensions(a), getDimensions(b))) return false; // invalid dimensions
+
+    Dimensions2D expectedDimensions = getDimensions(a);
+    Dimensions2D actualDimensions = getDimensions(result);
+    if (!areEqualSizes(actualDimensions, expectedDimensions)) {
+        return false; // result dimensions unexpected
+    }
+
+    // actual math
+    for (size_t row = 0; row < a->columnSize; row++) {
+        for(size_t col = 0; col < a->rowSize; col++) {
+
+            double value = getMatrixElement(a, row, col) * getMatrixElement(b, row, col);
+
+            if(!setMatrixElement(result, row, col, value)) {
+                return false; // attempt to index out of bounds
+            }
+        }
+    }
+
+    return true;
 }
 
 bool matrixAddition(Matrix* a, Matrix* b, Matrix* result) {

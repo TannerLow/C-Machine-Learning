@@ -19,11 +19,20 @@ bool loadMatricesFromFile(const char* filename, MatrixArray** array, size_t* num
 bool dotProductTest();
 bool matrixAdditionTest();
 bool matrixScaleTest();
+bool matrixElementWiseMultiplicationTest();
 
 void test() {
-    printf("Dot Product Test: %s\n", dotProductTest() ? "success" : "FAILURE");
-    printf("Matrix Addition Test: %s\n", matrixAdditionTest() ? "success" : "FAILURE");
-    printf("Matrix Scalar Test: %s\n", matrixScaleTest() ? "success" : "FAILURE");
+    bool dotProduct = dotProductTest();
+    bool addition = matrixAdditionTest(); 
+    bool scalar = matrixScaleTest();  
+    bool elementWise = matrixElementWiseMultiplicationTest();
+
+    printf("\n");
+    printf("Dot Product Test: %s\n", dotProduct ? "success" : "FAILURE");
+    printf("Matrix Addition Test: %s\n", addition ? "success" : "FAILURE");
+    printf("Matrix Scalar Test: %s\n", scalar ? "success" : "FAILURE");
+    printf("Matrix Element Wise Multiplication Test: %s\n", elementWise ? "success" : "FAILURE");
+
     printf("Done Testing\n");
 }
 
@@ -201,8 +210,9 @@ bool dotProductTest() {
 
         bool success = areEqualMatrices(expected, &actual);
         printf("Actual equals expected: %s\n", success ? "true" : "false");
+        deleteMatrix(&actual);
+
         if (!success) {
-            deleteMatrix(&actual);
             testSuccess = false;
             break;
         }
@@ -255,8 +265,9 @@ bool matrixAdditionTest() {
 
         bool success = areEqualMatrices(expected, &actual);
         printf("Actual equals expected: %s\n", success ? "true" : "false");
+        deleteMatrix(&actual);
+
         if (!success) {
-            deleteMatrix(&actual);
             testSuccess = false;
             break;
         }
@@ -306,8 +317,64 @@ bool matrixScaleTest() {
 
         bool success = areEqualMatrices(expected, &actual);
         printf("Actual equals expected: %s\n", success ? "true" : "false");
+        deleteMatrix(&actual);
+
         if (!success) {
+            testSuccess = false;
+            break;
+        }
+    }
+
+    freeMatrixArraySet(&matrixArrays, size);
+    return testSuccess;
+}
+
+bool matrixElementWiseMultiplicationTest() {
+    MatrixArray* matrixArrays;
+    size_t size;
+
+    if (!loadMatricesFromFile("tests/tests_data/matrix_element_wise_multiplication.test", &matrixArrays, &size)) {
+        logTestError("Failed to load test data from file", __LINE__);
+        return false;
+    }
+
+    printf("Beginning matrix element wise multiplication testing: %d test case(s)\n", size);
+
+    bool testSuccess = true;
+    for (size_t testCase = 0; testCase < size; testCase++) {
+        Matrix* a = &matrixArrays[testCase].matrices[0];
+        Matrix* b = &matrixArrays[testCase].matrices[1];
+        Matrix* expected = &matrixArrays[testCase].matrices[2];
+
+        Matrix actual;
+        size_t resultRows = expected->columnSize;
+        size_t resultCols = expected->rowSize;
+
+        if (!createMatrix(&actual, resultRows, resultCols)) {
+            logTestError("Failed to create matrix", __LINE__);
+            testSuccess = false;
+            break;
+        }
+
+        if(!elementWiseMultiplication(a, b, &actual)) {
+            logTestError("Failed to perform element wise multiplication of matrices", __LINE__);
             deleteMatrix(&actual);
+            testSuccess = false;
+            break;
+        }
+
+        printf("Matrix A:\n");
+        displayMatrix(a);
+        printf("Matrix B:\n");
+        displayMatrix(b);
+        printf("Result:\n");
+        displayMatrix(&actual);
+
+        bool success = areEqualMatrices(expected, &actual);
+        printf("Actual equals expected: %s\n", success ? "true" : "false");
+        deleteMatrix(&actual);
+
+        if (!success) {
             testSuccess = false;
             break;
         }
