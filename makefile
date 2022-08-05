@@ -10,8 +10,11 @@ else
 	output_file := main.out
 endif
 
-default:
+debug:
 	gcc $(wildcard *.c) $(tests) -o $(output_file)
+
+release:
+	gcc $(wildcard *.c) $(tests) -o $(output_file) -DNDEBUG
 
 clean:
 	$(delete) main.exe
