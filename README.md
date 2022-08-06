@@ -6,17 +6,6 @@ Machine learning from scratch in C. Fully connected network for predicting image
 # How to Build
 Requires `gcc` and optionally `make` 
   
-Without make:
-```c
-// debug
-gcc *.c -o main.exe
-./main.exe
-
-// release
-gcc *.c -o main.exe -DNDEBUG
-./main.exe
-```
-  
 With make:
 ```c
 // debug (default make command)
@@ -28,6 +17,27 @@ make clean
 make release
 ./main.exe
 make clean
+
+// for running tests prepend test_ to the recipe name
+// example
+make test_release
+```
+
+Without make:
+```c
+// debug
+gcc *.c matrix/*.c -o main.exe
+./main.exe
+
+// release
+gcc *.c matrix/*.c -o main.exe -DNDEBUG
+./main.exe
+
+// to run tests, include the following
+tests/*.c -DRUN_TESTS
+
+// example
+gcc *.c matrix/*.c tests/*.c -DRUN_TESTS -o main.exe -DNDEBUG
 ```
   
 Note: If using make on a non-Windows platform, output file will be `main.out`. This can be reconfigured in the makefile.

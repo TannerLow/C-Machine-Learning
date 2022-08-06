@@ -4,6 +4,8 @@
 #include "tests/tester.h"
 
 int main() {
-    test();
+    #ifdef RUN_TESTS
+        test();
+    #endif
     return 0;
 }

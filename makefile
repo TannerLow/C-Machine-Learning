@@ -1,7 +1,14 @@
 output_file := 
 delete := 
-tests := $(wildcard tests/*.c)
+tests := 
+CFLAGS = -Wall
 matrixlib := $(wildcard matrix/*.c)
+test_adds := $(wildcard tests/*.c) -DRUN_TESTS
+
+test_base_cmd = $(MAKE) -s CFLAGS="$(test_adds)"
+base_cmd = gcc $(wildcard *.c) $(matrixlib) $(CFLAGS) -o $(output_file)
+debug_cmd  = $(base_cmd)
+release_cmd = $(base_cmd) -DNDEBUG
 
 ifeq ($(OS), Windows_NT)
 	delete := del /f
@@ -12,10 +19,18 @@ else
 endif
 
 debug:
-	gcc $(wildcard *.c) $(tests) $(matrixlib) -o $(output_file)
+	@echo $(debug_cmd)
+	@$(debug_cmd)
 
 release:
-	gcc $(wildcard *.c) $(tests) $(matrixlib) -o $(output_file) -DNDEBUG
+	@echo $(release_cmd)
+	@$(release_cmd)
+
+test_debug: 
+	@$(test_base_cmd) debug
+
+test_release: 
+	@$(test_base_cmd) release
 
 clean:
 	$(delete) main.exe
