@@ -4,15 +4,9 @@
 #include "matrix/Matrix.h"
 #include "intdefs.h"
 
-enum ActivationFunction {
-    NONE,
-    RELU,
-    SOFTMAX
-};
-
 typedef struct {
     uint16 size;
-    ActivationFunction activationFunctionEnum; 
+    bool (*activationFunction)(Matrix*, Matrix*);
 } LayerParams;
 
 typedef struct {
@@ -20,6 +14,7 @@ typedef struct {
     Matrix activationInputs;
     Matrix activationOutputs;
     Matrix biases;
+    bool (*activationFunction)(Matrix*, Matrix*);
 } HiddenLayer;
 
 // Output layer is just another hidden layer
@@ -37,5 +32,12 @@ typedef struct {
 // assumption: layerParams is a valid array of the proper size defined by totalLayerCount
 bool createNeuralNet(NeuralNet* network, const LayerParams* layerParams, const uint8 totalLayerCount);
 void deleteNeuralNet(NeuralNet* network);
+
+// helper
+void deleteHiddenLayer(HiddenLayer* layer);
+
+// builtin activation functions
+bool relu(Matrix* x, Matrix* y);
+bool softmax(Matrix* x, Matrix* y);
 
 #endif // NEURAL_NET_H
