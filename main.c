@@ -4,8 +4,12 @@
 #include "tests/tester.h"
 
 int main() {
+
     #ifdef RUN_TESTS
         test();
     #endif
+
+    
+
     return 0;
 }
