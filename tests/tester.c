@@ -20,18 +20,24 @@ bool dotProductTest();
 bool matrixAdditionTest();
 bool matrixScaleTest();
 bool matrixElementWiseMultiplicationTest();
+bool matrixSubtractionTest();
+bool dotProductTransposeTest();
 
 void test() {
     bool dotProduct = dotProductTest();
     bool addition = matrixAdditionTest(); 
     bool scalar = matrixScaleTest();  
     bool elementWise = matrixElementWiseMultiplicationTest();
+    bool subtraction = matrixSubtractionTest();
+    bool dotTranspose = dotProductTransposeTest();
 
     printf("\n");
     printf("Dot Product Test: %s\n", dotProduct ? "success" : "FAILURE");
     printf("Matrix Addition Test: %s\n", addition ? "success" : "FAILURE");
     printf("Matrix Scalar Test: %s\n", scalar ? "success" : "FAILURE");
     printf("Matrix Element Wise Multiplication Test: %s\n", elementWise ? "success" : "FAILURE");
+    printf("Matrix Subtraction Test: %s\n", subtraction ? "success" : "FAILURE");
+    printf("Dot Product Transpose B Test: %s\n", dotTranspose ? "success" : "FAILURE");
 
     printf("Done Testing\n");
 }
@@ -358,6 +364,116 @@ bool matrixElementWiseMultiplicationTest() {
 
         if(!elementWiseMultiplication(a, b, &actual)) {
             logTestError("Failed to perform element wise multiplication of matrices", __LINE__);
+            deleteMatrix(&actual);
+            testSuccess = false;
+            break;
+        }
+
+        printf("Matrix A:\n");
+        displayMatrix(a);
+        printf("Matrix B:\n");
+        displayMatrix(b);
+        printf("Result:\n");
+        displayMatrix(&actual);
+
+        bool success = areEqualMatrices(expected, &actual);
+        printf("Actual equals expected: %s\n", success ? "true" : "false");
+        deleteMatrix(&actual);
+
+        if (!success) {
+            testSuccess = false;
+            break;
+        }
+    }
+
+    freeMatrixArraySet(&matrixArrays, size);
+    return testSuccess;
+}
+
+bool matrixSubtractionTest() {
+    MatrixArray* matrixArrays;
+    size_t size;
+
+    if (!loadMatricesFromFile("tests/tests_data/matrix_subtraction.test", &matrixArrays, &size)) {
+        logTestError("Failed to load test data from file", __LINE__);
+        return false;
+    }
+
+    printf("Beginning matrix subtraction testing: %d test case(s)\n", size);
+
+    bool testSuccess = true;
+    for (size_t testCase = 0; testCase < size; testCase++) {
+        Matrix* a = &matrixArrays[testCase].matrices[0];
+        Matrix* b = &matrixArrays[testCase].matrices[1];
+        Matrix* expected = &matrixArrays[testCase].matrices[2];
+
+        Matrix actual;
+        size_t resultRows = expected->columnSize;
+        size_t resultCols = expected->rowSize;
+
+        if (!createMatrix(&actual, resultRows, resultCols)) {
+            logTestError("Failed to create matrix", __LINE__);
+            testSuccess = false;
+            break;
+        }
+
+        if(!matrixSubtraction(a, b, &actual)) {
+            logTestError("Failed to perform matrix subtraction", __LINE__);
+            deleteMatrix(&actual);
+            testSuccess = false;
+            break;
+        }
+
+        printf("Matrix A:\n");
+        displayMatrix(a);
+        printf("Matrix B:\n");
+        displayMatrix(b);
+        printf("Result:\n");
+        displayMatrix(&actual);
+
+        bool success = areEqualMatrices(expected, &actual);
+        printf("Actual equals expected: %s\n", success ? "true" : "false");
+        deleteMatrix(&actual);
+
+        if (!success) {
+            testSuccess = false;
+            break;
+        }
+    }
+
+    freeMatrixArraySet(&matrixArrays, size);
+    return testSuccess;
+}
+
+bool dotProductTransposeTest() {
+    MatrixArray* matrixArrays;
+    size_t size;
+
+    if (!loadMatricesFromFile("tests/tests_data/dot_product_transpose.test", &matrixArrays, &size)) {
+        logTestError("Failed to load test data from file", __LINE__);
+        return false;
+    }
+
+    printf("Beginning dot product transpose B testing: %d test case(s)\n", size);
+
+    bool testSuccess = true;
+    for (size_t testCase = 0; testCase < size; testCase++) {
+        Matrix* a = &matrixArrays[testCase].matrices[0];
+        Matrix* b = &matrixArrays[testCase].matrices[1];
+        Matrix* expected = &matrixArrays[testCase].matrices[2];
+
+        Matrix actual;
+        size_t resultRows = expected->columnSize;
+        size_t resultCols = expected->rowSize;
+
+        if (!createMatrix(&actual, resultRows, resultCols)) {
+            logTestError("Failed to create matrix", __LINE__);
+            testSuccess = false;
+            break;
+        }
+
+        if(!dotProductTransposeB(a, b, &actual)) {
+            logTestError("Failed to perform dot product transpose B", __LINE__);
             deleteMatrix(&actual);
             testSuccess = false;
             break;
