@@ -1,8 +1,8 @@
 #include "tester.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "../Matrix.h"
-#include "../MatrixMath.h"
+#include "../matrix/Matrix.h"
+#include "../matrix/MatrixMath.h"
 
 typedef struct {
     Matrix* matrices;

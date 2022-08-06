@@ -1,6 +1,7 @@
 output_file := 
 delete := 
 tests := $(wildcard tests/*.c)
+matrixlib := $(wildcard matrix/*.c)
 
 ifeq ($(OS), Windows_NT)
 	delete := del /f
@@ -11,10 +12,10 @@ else
 endif
 
 debug:
-	gcc $(wildcard *.c) $(tests) -o $(output_file)
+	gcc $(wildcard *.c) $(tests) $(matrixlib) -o $(output_file)
 
 release:
-	gcc $(wildcard *.c) $(tests) -o $(output_file) -DNDEBUG
+	gcc $(wildcard *.c) $(tests) $(matrixlib) -o $(output_file) -DNDEBUG
 
 clean:
 	$(delete) main.exe

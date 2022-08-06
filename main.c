@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "Matrix.h"
-#include "MatrixMath.h"
+#include "matrix/Matrix.h"
+#include "matrix/MatrixMath.h"
 #include "tests/tester.h"
 
 int main() {
