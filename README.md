@@ -7,7 +7,7 @@ Machine learning from scratch in C. Fully connected network for predicting image
 Requires `gcc` and optionally `make` 
   
 With make:
-```c
+```
 // debug (default make command)
 make debug
 ./main.exe
@@ -24,7 +24,7 @@ make test_release
 ```
 
 Without make:
-```c
+```
 // debug
 gcc *.c matrix/*.c -o main.exe
 ./main.exe
