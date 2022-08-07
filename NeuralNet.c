@@ -52,7 +52,7 @@ bool createNeuralNet(NeuralNet* network, const LayerParams* layerParams, const u
         // weights matrix is size A(i-1) X A(i)
         // because for every previous layer activation 
         // there is a weight on each current layer activation
-        if (!createMatrix(&layer->weights, layerParams[i-1].size, layerParams[i].size)) {
+        if (!createMatrix(&layer->weights, layerParams[i].size, layerParams[i-1].size)) {
             return failAndClean(network);
         }
 
@@ -109,6 +109,3 @@ void deleteHiddenLayer(HiddenLayer* layer) {
         layer->activationFunction = NULL;
     }
 }
-
-bool relu(Matrix* x, Matrix* y) {return false;}
-bool softmax(Matrix* x, Matrix* y) {return false;}

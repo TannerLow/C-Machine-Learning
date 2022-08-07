@@ -125,8 +125,35 @@ bool setMatrixElement(Matrix* matrix, const size_t row, const size_t col, const 
     return success;
 }
 
+bool copyVector(const Vector* a, Vector* b) {
+    assert(a != NULL && b != NULL);
+    assert(a->data != NULL && b->data != NULL);
+    assert(a->size == b->size);
+
+    // input validation
+    if (a == NULL || b == NULL) return false;
+    if (a->data == NULL || b->data == NULL) return false;
+    if (a->size != b->size) return false;
+
+    // actual work
+    for (size_t i = 0; i < a->size; i++) {
+        b->data[i] = a->data[i];
+    }
+
+    return true;
+}
+
 bool areEqualSizes(Dimensions2D a, Dimensions2D b) {
     return a.rows == b.rows && a.cols == b.cols;
+}
+
+bool areEqualSizedVectors(const Vector* a, const Vector* b) {
+    assert(a != NULL && b != NULL);
+    
+    // input validation
+    if (a == NULL || b == NULL) return false;
+
+    return a->size == b->size;
 }
 
 bool areEqualVectors(Vector* a, Vector* b) {

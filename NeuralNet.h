@@ -6,7 +6,7 @@
 
 typedef struct {
     uint16 size;
-    bool (*activationFunction)(Matrix*, Matrix*);
+    bool (*activationFunction)(const Vector*, Vector*);
 } LayerParams;
 
 typedef struct {
@@ -14,7 +14,7 @@ typedef struct {
     Matrix activationInputs;
     Matrix activationOutputs;
     Matrix biases;
-    bool (*activationFunction)(Matrix*, Matrix*);
+    bool (*activationFunction)(const Vector*, Vector*);
 } HiddenLayer;
 
 // Output layer is just another hidden layer
@@ -35,9 +35,5 @@ void deleteNeuralNet(NeuralNet* network);
 
 // helper
 void deleteHiddenLayer(HiddenLayer* layer);
-
-// builtin activation functions
-bool relu(Matrix* x, Matrix* y);
-bool softmax(Matrix* x, Matrix* y);
 
 #endif // NEURAL_NET_H
