@@ -1,9 +1,9 @@
 #include "tester.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "../matrix/Matrix.h"
-#include "../matrix/MatrixMath.h"
-#include "../matrix/MatrixDebug.h"
+#include "../Matrix.h"
+#include "../MatrixMath.h"
+#include "../MatrixDebug.h"
 
 typedef struct {
     Matrix* matrices;
@@ -39,7 +39,7 @@ void test() {
     printf("Matrix Subtraction Test: %s\n", subtraction ? "success" : "FAILURE");
     printf("Dot Product Transpose B Test: %s\n", dotTranspose ? "success" : "FAILURE");
 
-    printf("Done Testing\n");
+    printf("Done Testing\n\n");
 }
 
 void logTestError(const char* msg, int line) {
@@ -168,7 +168,7 @@ bool dotProductTest() {
     MatrixArray* matrixArrays;
     size_t size;
 
-    if (!loadMatricesFromFile("tests/tests_data/dot_product.test", &matrixArrays, &size)) {
+    if (!loadMatricesFromFile("matrix/tests/tests_data/dot_product.test", &matrixArrays, &size)) {
         logTestError("Failed to load test data from file", __LINE__);
         return false;
     }
@@ -223,7 +223,7 @@ bool matrixAdditionTest() {
     MatrixArray* matrixArrays;
     size_t size;
 
-    if (!loadMatricesFromFile("tests/tests_data/matrix_addition.test", &matrixArrays, &size)) {
+    if (!loadMatricesFromFile("matrix/tests/tests_data/matrix_addition.test", &matrixArrays, &size)) {
         logTestError("Failed to load test data from file", __LINE__);
         return false;
     }
@@ -278,7 +278,7 @@ bool matrixScaleTest() {
     MatrixArray* matrixArrays;
     size_t size;
 
-    if (!loadMatricesFromFile("tests/tests_data/matrix_scale.test", &matrixArrays, &size)) {
+    if (!loadMatricesFromFile("matrix/tests/tests_data/matrix_scale.test", &matrixArrays, &size)) {
         logTestError("Failed to load test data from file", __LINE__);
         return false;
     }
@@ -330,7 +330,7 @@ bool matrixElementWiseMultiplicationTest() {
     MatrixArray* matrixArrays;
     size_t size;
 
-    if (!loadMatricesFromFile("tests/tests_data/matrix_element_wise_multiplication.test", &matrixArrays, &size)) {
+    if (!loadMatricesFromFile("matrix/tests/tests_data/matrix_element_wise_multiplication.test", &matrixArrays, &size)) {
         logTestError("Failed to load test data from file", __LINE__);
         return false;
     }
@@ -385,7 +385,7 @@ bool matrixSubtractionTest() {
     MatrixArray* matrixArrays;
     size_t size;
 
-    if (!loadMatricesFromFile("tests/tests_data/matrix_subtraction.test", &matrixArrays, &size)) {
+    if (!loadMatricesFromFile("matrix/tests/tests_data/matrix_subtraction.test", &matrixArrays, &size)) {
         logTestError("Failed to load test data from file", __LINE__);
         return false;
     }
@@ -440,7 +440,7 @@ bool dotProductTransposeTest() {
     MatrixArray* matrixArrays;
     size_t size;
 
-    if (!loadMatricesFromFile("tests/tests_data/dot_product_transpose.test", &matrixArrays, &size)) {
+    if (!loadMatricesFromFile("matrix/tests/tests_data/dot_product_transpose.test", &matrixArrays, &size)) {
         logTestError("Failed to load test data from file", __LINE__);
         return false;
     }

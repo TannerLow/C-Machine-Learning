@@ -4,7 +4,7 @@
 #include "model/NeuralNet.h"
 
 #ifdef RUN_TESTS
-#include "tests/tester.h"
+#include "matrix/tests/tester.h"
 #include "model/tests/tester.h"
 #endif
 
