@@ -3,6 +3,11 @@ Machine learning from scratch in C. Fully connected network for predicting image
 
 ---
 
+# How to Use
+Currently still in development so it simply runs tests in test mode and does nothing in non-test mode. If you don't care to build the project then you can simply run the `main.exe` included in the project for the latest build. Build intructions below otherwise.
+
+---
+
 # How to Build
 Requires `gcc` and optionally `make` 
   
