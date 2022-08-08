@@ -25,14 +25,20 @@ typedef struct {
 bool createVector(Vector* vector, const size_t size);
 void deleteVector(Vector* vector);
 
-bool createMatrix(Matrix* m, const size_t rows, const size_t cols);
-void deleteMatrix(Matrix* m);
+bool createMatrix(Matrix* matrix, const size_t rows, const size_t cols);
+bool createMatrixFrom2DArray(Matrix* matrix, const double** arr, const size_t rows, const size_t cols);
+void deleteMatrix(Matrix* matrix);
 
-Dimensions2D getDimensions(Matrix* matrix);
+Dimensions2D getDimensions(const Matrix* matrix);
 bool isValidCoordinate(const Matrix* matrix, const size_t row, const size_t col);
+bool copyVector(const Vector* a, Vector* b);
+bool copyMatrix(const Matrix* a, Matrix* b);
+
+// getter assumption: expected output for invalid get is minimum double value
 double getMatrixElement(const Matrix* matrix, const size_t row, const size_t col);
 bool setMatrixElement(Matrix* matrix, const size_t row, const size_t col, const double value);
-bool copyVector(const Vector* a, Vector* b);
+double getVectorElement(const Vector* vector, const size_t i);
+bool setVectorElement(Vector* vector, const size_t i, const double value);
 
 bool areEqualSizes(Dimensions2D a, Dimensions2D b);
 bool areEqualSizedVectors(const Vector* a, const Vector* b);

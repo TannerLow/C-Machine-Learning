@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "../matrix/MatrixMath.h"
 
 // helper
 bool failAndClean(NeuralNet* network) {
@@ -75,6 +76,7 @@ bool createNeuralNet(NeuralNet* network, const LayerParams* layerParams, const u
         }
 
         layer->activationFunction = layerParams[i].activationFunction;
+        layer->size = layerParams[i].size;
     }
 
     return true;
@@ -108,4 +110,62 @@ void deleteHiddenLayer(HiddenLayer* layer) {
         deleteMatrix(&layer->biases);
         layer->activationFunction = NULL;
     }
+}
+
+bool modelPredict(NeuralNet* model, const Vector* input) {
+    assert(model != NULL && input != NULL);
+    assert(model->hiddenLayers != NULL);
+    assert(input->data != NULL);
+    assert(input->size > 0);
+    assert(input->size == model->inputLayer.columnSize);
+
+    // input validation
+    if ((model == NULL || input == NULL) ||
+        (model->hiddenLayers == NULL)    ||
+        (input->data == NULL)            ||
+        (input->size == 0)                ||
+        (input->size != model->inputLayer.columnSize))
+    {
+        return false;
+    }
+
+    if (!copyVector(input, &model->inputLayer.columns[0])) {
+        return false; // failed to copy input into model
+    }
+
+    Matrix* previousActivations = &model->inputLayer;
+
+    for (uint8 i = 1; i < model->totalLayerCount; i++) {
+
+        HiddenLayer* layer = NULL;
+        // output layer is not stored in the hidden layer array
+        if (i < model->totalLayerCount-1) {
+            layer = &model->hiddenLayers[i-1];
+        }
+        else {
+            layer = &model->outputLayer;
+        }
+
+        // A(i) = A(i-1) X W + B
+        // Ao(i) = f(A(i))
+
+        // A(i) = A(i-1) X W
+        if (!dotProduct(&layer->weights, previousActivations, &layer->activationInputs)) {
+            return false; // failed to apply weights to previous layer outputs
+        }
+
+        // A(i) = A(i) + B
+        if (!matrixAddition(&layer->activationInputs, &layer->biases, &layer->activationInputs)) {
+            return false; // failed to add in the biases
+        }
+
+        // Ao(i) = f(A(i))
+        if (!layer->activationFunction(&layer->activationInputs.columns[0], &layer->activationOutputs.columns[0])) {
+            return false; // failed to apply activation functions
+        }
+
+        previousActivations = &layer->activationOutputs;
+    }
+
+    return true;
 }

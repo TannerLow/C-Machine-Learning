@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <assert.h>
+#include <float.h>
 
 bool createVector(Vector* vector, const size_t size) {
     assert(vector != NULL);
@@ -86,7 +87,28 @@ bool createMatrix(Matrix* matrix, const size_t rows, const size_t cols) {
     return success;
 }
 
-Dimensions2D getDimensions(Matrix* matrix) {
+bool createMatrixFrom2DArray(Matrix* matrix, const double** arr, const size_t rows, const size_t cols) {
+    assert(matrix != NULL);
+    assert(arr != NULL);
+    
+    if (matrix == NULL) return false;
+    if (arr == NULL) return false;
+
+    if (!createMatrix(matrix, rows, cols)) return false; // unable to create matrix to store values
+
+    for (size_t col = 0; col < cols; col++) {
+        for (size_t row = 0; row < rows; row++) {
+            if (!setMatrixElement(matrix, row, col, arr[row][col])) {
+                deleteMatrix(matrix);
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+Dimensions2D getDimensions(const Matrix* matrix) {
     assert(matrix != NULL);
 
     Dimensions2D dimensions = { 0, 0 };
@@ -99,17 +121,20 @@ Dimensions2D getDimensions(Matrix* matrix) {
 
 bool isValidCoordinate(const Matrix* matrix, const size_t row, const size_t col) {
     assert(matrix != NULL);
+
     return matrix != NULL && row < matrix->columnSize && col < matrix->rowSize;
 }
 
 double getMatrixElement(const Matrix* matrix, const size_t row, const size_t col) {
     assert(matrix != NULL);
-    double value = 0;
+
+    double value = DBL_MIN;
     if (matrix != NULL && matrix->columns != NULL) {
         if (isValidCoordinate(matrix, row, col)) {
             value = matrix->columns[col].data[row];
         }
     }
+
     return value;
 }
 
@@ -125,6 +150,29 @@ bool setMatrixElement(Matrix* matrix, const size_t row, const size_t col, const 
     return success;
 }
 
+double getVectorElement(const Vector* vector, const size_t i) {
+    assert(vector != NULL);
+    assert(i < vector->size);
+
+    double value = DBL_MIN;
+    if (vector != NULL && i < vector->size) {
+        value = vector->data[i];
+    }
+
+    return value;
+}
+
+bool setVectorElement(Vector* vector, const size_t i, const double value) {
+    assert(vector != NULL);
+    assert(i < vector->size);
+
+    if (vector != NULL && i < vector->size) {
+        vector->data[i] = value;
+    }
+    
+    return value;
+}
+
 bool copyVector(const Vector* a, Vector* b) {
     assert(a != NULL && b != NULL);
     assert(a->data != NULL && b->data != NULL);
@@ -138,6 +186,28 @@ bool copyVector(const Vector* a, Vector* b) {
     // actual work
     for (size_t i = 0; i < a->size; i++) {
         b->data[i] = a->data[i];
+    }
+
+    return true;
+}
+
+bool copyMatrix(const Matrix* a, Matrix* b) {
+    assert(a != NULL && b != NULL);
+    assert(a->columns != NULL && b->columns != NULL);
+    assert(a->columns->data != NULL && b->columns->data != NULL);
+    assert(areEqualSizes(getDimensions(a), getDimensions(b)));
+
+    // input validation
+    if (a == NULL || b == NULL) return false;
+    if (a->columns == NULL || b->columns == NULL) return false;
+    if (a->columns->data == NULL || b->columns->data == NULL) return false;
+    if (!areEqualSizes(getDimensions(a), getDimensions(b))) return false;
+
+    // actual work
+    for (size_t col = 0; col < a->rowSize; col++) {
+        for (size_t row = 0; row < a->columnSize; row++) {
+            setMatrixElement(b, row, col, getMatrixElement(a, row, col));
+        }
     }
 
     return true;

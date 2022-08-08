@@ -1,8 +1,8 @@
 #ifndef NEURAL_NET_H
 #define NEURAL_NET_H
 
-#include "matrix/Matrix.h"
-#include "intdefs.h"
+#include "../matrix/Matrix.h"
+#include "../intdefs.h"
 
 typedef struct {
     uint16 size;
@@ -14,6 +14,7 @@ typedef struct {
     Matrix activationInputs;
     Matrix activationOutputs;
     Matrix biases;
+    uint16 size;
     bool (*activationFunction)(const Vector*, Vector*);
 } HiddenLayer;
 
@@ -35,5 +36,7 @@ void deleteNeuralNet(NeuralNet* network);
 
 // helper
 void deleteHiddenLayer(HiddenLayer* layer);
+
+bool modelPredict(NeuralNet* model, const Vector* input);
 
 #endif // NEURAL_NET_H

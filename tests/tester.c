@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "../matrix/Matrix.h"
 #include "../matrix/MatrixMath.h"
+#include "../matrix/MatrixDebug.h"
 
 typedef struct {
     Matrix* matrices;
@@ -10,7 +11,6 @@ typedef struct {
 } MatrixArray;
 
 void logTestError(const char* msg, int line);
-void displayMatrix(Matrix* m);
 bool initializeMatrixArray(MatrixArray* array, const size_t size);
 void freeMatrixArray(MatrixArray* array);
 bool initializeMatrixSet(MatrixArray** set, const size_t size);
@@ -44,15 +44,6 @@ void test() {
 
 void logTestError(const char* msg, int line) {
     printf("%s (%s, %d)\n", msg, __FILE__, line);
-}
-
-void displayMatrix(Matrix* m) {
-    for (size_t row = 0; row < m->columnSize; row++) {
-        for (size_t col = 0; col < m->rowSize; col++) {
-            printf("%lf ", getMatrixElement(m, row, col));
-        }
-        printf("\n");
-    }
 }
 
 // pointer to MatrixArray

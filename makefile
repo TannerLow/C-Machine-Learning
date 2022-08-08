@@ -2,11 +2,14 @@ output_file :=
 delete := 
 tests := 
 CFLAGS = -Wall
-matrixlib := $(wildcard matrix/*.c)
-test_adds := $(wildcard tests/*.c) -DRUN_TESTS
+matrix_lib := $(wildcard matrix/*.c)
+model_lib := $(wildcard model/*.c)
+model_tests := $(wildcard model/tests/*.c)
+learning_lib := $(wildcard learning/*.c)
+test_adds := $(model_tests) $(wildcard tests/*.c) -DRUN_TESTS -DRUN_MODEL_TESTS
 
 test_base_cmd = $(MAKE) -s CFLAGS="$(test_adds)"
-base_cmd = gcc $(wildcard *.c) $(matrixlib) $(CFLAGS) -o $(output_file)
+base_cmd = gcc $(wildcard *.c) $(matrix_lib) $(model_lib) $(learning_lib) $(CFLAGS) -o $(output_file)
 debug_cmd  = $(base_cmd)
 release_cmd = $(base_cmd) -DNDEBUG
 
