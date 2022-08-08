@@ -41,3 +41,7 @@ gcc *.c matrix/*.c tests/*.c -DRUN_TESTS -o main.exe -DNDEBUG
 ```
   
 Note: If using make on a non-Windows platform, output file will be `main.out`. This can be reconfigured in the makefile.
+
+---
+
+## Total lines of C source code and headers as of 2022-08-07 = 1531 lines
