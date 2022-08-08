@@ -6,14 +6,16 @@
 #ifdef RUN_TESTS
 #include "matrix/tests/tester.h"
 #include "model/tests/tester.h"
+#include "learning/tests/tester.h"
 #endif
 
 
 int main() {
 
     #ifdef RUN_TESTS
-        test();
+        matrix_testAll();
         model_testAll();
+        ml_testAll();
     #endif
 
 

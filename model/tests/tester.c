@@ -13,6 +13,7 @@ bool model_testAll() {
     bool prediction = model_testPrediction();
 
     printf("Model prediction test: %s\n", prediction ? "success" : "FAILURE");
+    printf("\n");
 
     return prediction;
 }

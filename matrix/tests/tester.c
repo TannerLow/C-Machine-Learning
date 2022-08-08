@@ -23,7 +23,7 @@ bool matrixElementWiseMultiplicationTest();
 bool matrixSubtractionTest();
 bool dotProductTransposeTest();
 
-void test() {
+void matrix_testAll() {
     bool dotProduct = dotProductTest();
     bool addition = matrixAdditionTest(); 
     bool scalar = matrixScaleTest();  

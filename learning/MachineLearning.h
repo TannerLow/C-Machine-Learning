@@ -5,6 +5,6 @@
 
 // assumption: expected value for invalid input is 0
 double getCost(Matrix* actual, Matrix* expected);
-double getAverageCost(Matrix** actuals, Matrix* expecteds);
+double getAverageCost(Matrix** actuals, Matrix** expecteds, const size_t cases);
 
 #endif

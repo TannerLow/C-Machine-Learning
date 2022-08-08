@@ -3,10 +3,12 @@ delete :=
 tests := 
 CFLAGS = -Wall
 matrix_lib := $(wildcard matrix/*.c)
+matrix_tests := $(wildcard matrix/tests/*.c)
 model_lib := $(wildcard model/*.c)
 model_tests := $(wildcard model/tests/*.c)
 learning_lib := $(wildcard learning/*.c)
-test_adds := $(model_tests) $(wildcard matrix/tests/*.c) -DRUN_TESTS -DRUN_MODEL_TESTS
+learning_tests := $(wildcard learning/tests/*.c)
+test_adds := $(learning_tests) $(model_tests) $(matrix_tests) -DRUN_TESTS -DRUN_MODEL_TESTS
 
 test_base_cmd = $(MAKE) -s CFLAGS="$(test_adds)"
 base_cmd = gcc $(wildcard *.c) $(matrix_lib) $(model_lib) $(learning_lib) $(CFLAGS) -o $(output_file)
