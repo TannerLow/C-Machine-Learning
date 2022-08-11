@@ -14,7 +14,7 @@ test_adds := $(learning_tests) $(model_tests) $(matrix_tests) -DRUN_TESTS -DRUN_
 
 test_base_cmd = $(MAKE) -s CFLAGS="$(test_adds)"
 base_cmd = gcc $(wildcard *.c) $(matrix_lib) $(model_lib) $(learning_lib) $(formats_lib) $(CFLAGS) -o $(output_file)
-debug_cmd  = $(base_cmd)
+debug_cmd  = $(base_cmd) -DDEBUG
 release_cmd = $(base_cmd) -DNDEBUG
 
 ifeq ($(OS), Windows_NT)

@@ -10,6 +10,7 @@ bool ml_testAll() {
 
     printf("Cost Test: %s\n", cost ? "success" : "FAILURE");
     printf("Cost Test: %s\n", averageCost ? "success" : "FAILURE");
+    printf("\n");
 
     return cost && averageCost;
 }

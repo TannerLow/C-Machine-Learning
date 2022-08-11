@@ -34,6 +34,9 @@ typedef struct {
 bool createNeuralNet(NeuralNet* network, const LayerParams* layerParams, const uint8 totalLayerCount);
 void deleteNeuralNet(NeuralNet* network);
 
+bool setWeights(HiddenLayer* layer, const double* values);
+bool setBiases(HiddenLayer* layer, const double* values);
+
 // helper
 void deleteHiddenLayer(HiddenLayer* layer);
 

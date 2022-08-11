@@ -100,6 +100,43 @@ void deleteNeuralNet(NeuralNet* network) {
     network->totalLayerCount = 0;
 }
 
+bool setWeights(HiddenLayer* layer, const double* values) {
+    assert(layer != NULL && values != NULL);
+
+    if (layer == NULL || values == NULL) return false;
+
+    size_t rows = layer->weights.columnSize;
+    printf("Setting weights\n");
+    printf("rows: %llu\n", rows);
+    size_t cols = layer->weights.rowSize;
+    printf("cols: %llu\n", cols);
+    size_t i = 0;
+    for (size_t col = 0; col < cols; col++) {
+        for (size_t row = 0; row < rows; row++) {
+            setMatrixElement(&layer->weights, row, col, values[i++]);
+        }
+    }
+
+    return true;
+}
+
+bool setBiases(HiddenLayer* layer, const double* values) {
+    assert(layer != NULL && values != NULL);
+
+    if (layer == NULL || values == NULL) return false;
+    
+    size_t rows = layer->biases.columnSize;
+    size_t cols = layer->biases.rowSize;
+    size_t i = 0;
+    for (size_t col = 0; col < cols; col++) {
+        for (size_t row = 0; row < rows; row++) {
+            setMatrixElement(&layer->biases, row, col, values[i++]);
+        }
+    }
+
+    return true;
+}
+
 void deleteHiddenLayer(HiddenLayer* layer) {
     assert(layer != NULL);
 
@@ -123,7 +160,7 @@ bool modelPredict(NeuralNet* model, const Vector* input) {
     if ((model == NULL || input == NULL) ||
         (model->hiddenLayers == NULL)    ||
         (input->data == NULL)            ||
-        (input->size == 0)                ||
+        (input->size == 0)               ||
         (input->size != model->inputLayer.columnSize))
     {
         return false;
@@ -136,6 +173,11 @@ bool modelPredict(NeuralNet* model, const Vector* input) {
     Matrix* previousActivations = &model->inputLayer;
 
     for (uint8 i = 1; i < model->totalLayerCount; i++) {
+        printf("layer %d activations\n", i-1);
+        for (size_t j = 0; j < previousActivations->columnSize; j++) {
+            printf("%lf, ", getMatrixElement(previousActivations, j, 0));
+        }
+        printf("\n");
 
         HiddenLayer* layer = NULL;
         // output layer is not stored in the hidden layer array

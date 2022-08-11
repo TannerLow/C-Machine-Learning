@@ -1,8 +1,16 @@
 #include "idx.h"
 #include <assert.h>
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+
+#ifdef DEBUG
+    #define IDX_LOG(x) x
+#else
+    void idx_noOp() {}
+    #define IDX_LOG(x) idx_noOp()
+#endif
+
 
 idx_Data idx_read(const char* filename) {
     assert(filename != NULL);
@@ -28,7 +36,7 @@ idx_Data idx_read(const char* filename) {
     memset(&magicNumber, 0, 4); // clear buffer
     fread(magicNumber, 1, 4, file);
 
-    printf("Magic number bytes: %X %X %X %X\n", magicNumber[0], magicNumber[1], magicNumber[2], magicNumber[3]);
+    IDX_LOG(printf("Magic number bytes: 0x%X 0x%X 0x%X 0x%X\n", magicNumber[0], magicNumber[1], magicNumber[2], magicNumber[3]));
 
     fileData.type = magicNumber[2];
     fileData.dimensions = magicNumber[3];
@@ -49,12 +57,12 @@ idx_Data idx_read(const char* filename) {
     }
     fileData.size = totalDataBytes;
     totalDataBytes *= idx_sizeOfElement(fileData.type);
-    printf("data bytes : %lld\n", fileData.size);
-    printf("total bytes: %lld\n", totalDataBytes);
+    IDX_LOG(printf("data  bytes count: %lld\n", fileData.size));
+    IDX_LOG(printf("total bytes count: %lld\n", totalDataBytes));
 
-    for (ubyte i = 0; i < fileData.dimensions; i++) {
-        printf("size of dim %d: %d\n", i, fileData.dimensionSizes[i]);
-    }
+    IDX_LOG(for (ubyte i = 0; i < fileData.dimensions; i++) {
+        printf("size of dimension %d: %d\n", i, fileData.dimensionSizes[i]);
+    });
 
     fileData.data = malloc(totalDataBytes);
 

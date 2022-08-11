@@ -1,9 +1,12 @@
 #include "MatrixMath.h"
 #include <assert.h>
+#include <stdio.h>
+#include <float.h>
 
 
 bool dotProduct(Matrix* a, Matrix* b, Matrix* result) {
     assert(a != NULL && b != NULL);
+    printf("%llu x %llu * %llu x %llu\n", a->columnSize, a->rowSize, b->columnSize, b->rowSize);
     assert(a->rowSize == b->columnSize);
 
     // input validation
@@ -163,4 +166,22 @@ bool scaleMatrix(Matrix* a, double scalar, Matrix* result) {
     }
 
     return true;
+}
+
+size_t maxIndex(const Vector* vector) {
+    assert(vector != NULL);
+    
+    size_t index = (size_t)-1;
+    double largestVal = DBL_MIN;
+
+    if (vector->data == NULL) return index;
+
+    for (size_t i = 0; i < vector->size; i++) {
+        if (vector->data[i] > largestVal) {
+            largestVal = vector->data[i];
+            index = i;
+        }
+    }
+    
+    return index;
 }
