@@ -24,7 +24,7 @@ int main() {
         ml_testAll();
     #endif
 
-    idx_Data xTrain = idx_read("train-images.idx3-ubyte");
+    idx_Data xTrain = idx_read("data/train-images.idx3-ubyte");
     // prints a rough looking 5 as proof of concept
     for (ubyte row = 0; row < 28; row++) {
         for (ubyte col = 0; col < 28; col++) {
@@ -139,7 +139,7 @@ void testWithTensorFlowModel() {
 
 // setup input and predict
 
-    xTrain = idx_read("train-images.idx3-ubyte");
+    xTrain = idx_read("data/train-images.idx3-ubyte");
     if (xTrain.data == NULL) {
         printf("Faild to load input data from file (%s, %d)\n", __FILE__, __LINE__);
         goto CLEAN_AND_EXIT;
@@ -163,7 +163,7 @@ void testWithTensorFlowModel() {
 
     for (size_t j = 0; j < input.size; j++) {
         if (input.data[j] != 0) {
-            printf("first non-zero input: %lf %d\n", input.data[j], j);
+            printf("first non-zero input: %lf %llu\n", input.data[j], j);
             break;
         }
     }

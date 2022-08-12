@@ -7,4 +7,4 @@
 double getCost(Matrix* actual, Matrix* expected);
 double getAverageCost(Matrix** actuals, Matrix** expecteds, const size_t cases);
 
-#endif
+#endif  // MACHINE_LEARNING_H
