@@ -5,8 +5,15 @@
 #include "../intdefs.h"
 
 typedef struct {
+    bool (*function)(const Vector*, Vector*);
+    bool (*derivative)(const Vector*, Matrix*);
+    bool elementWiseEligible;
+} ActivationFunction;
+
+typedef struct {
     uint16 size;
-    bool (*activationFunction)(const Vector*, Vector*);
+    ActivationFunction activationFunction;
+    //bool (*activationFunction)(const Vector*, Vector*);
 } LayerParams;
 
 typedef struct {
@@ -15,7 +22,8 @@ typedef struct {
     Matrix activationOutputs;
     Matrix biases;
     uint16 size;
-    bool (*activationFunction)(const Vector*, Vector*);
+    ActivationFunction activationFunction;
+    //bool (*activationFunction)(const Vector*, Vector*);
 } HiddenLayer;
 
 // Output layer is just another hidden layer
@@ -33,6 +41,10 @@ typedef struct {
 // assumption: layerParams is a valid array of the proper size defined by totalLayerCount
 bool createNeuralNet(NeuralNet* network, const LayerParams* layerParams, const uint8 totalLayerCount);
 void deleteNeuralNet(NeuralNet* network);
+bool copyNetworkStructure(NeuralNet* src, NeuralNet* dst);
+
+bool randomizeWeights(NeuralNet* network);
+bool randomizeBiases(NeuralNet* network);
 
 bool setWeights(HiddenLayer* layer, const double* values);
 bool setBiases(HiddenLayer* layer, const double* values);

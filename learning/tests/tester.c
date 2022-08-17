@@ -35,7 +35,7 @@ void ml_createCostTestMatrix(Matrix* matrix, Vector* data) {
 
 bool ml_testCost() {
     printf("[TEST] %s, %d\n", __FILE__, __LINE__);
-    const double expectedCost = 13;
+    const double expectedCost = 6.5;
     double actualData[] = {6, 9};
     double expectedData[] = {9, 7};
     Matrix actual, expected;
@@ -55,7 +55,7 @@ bool ml_testCost() {
 
 bool ml_testAverageCost() {
     printf("[TEST] %s, %d\n", __FILE__, __LINE__);
-    const double expectedCost = 26.5;
+    const double expectedCost = 13.25;
     double actualData1[] = {6, 9};
     double actualData2[] = {7, 9};
     double expectedData1[] = {9, 7};

@@ -6,6 +6,7 @@
 
 bool dotProduct(Matrix* a, Matrix* b, Matrix* result);
 bool dotProductTransposeB(Matrix* a, Matrix* b, Matrix* result);
+bool dotProductTransposeA(Matrix* a, Matrix* b, Matrix* result);
 bool elementWiseMultiplication(Matrix* a, Matrix* b, Matrix* result);
 bool matrixAddition(Matrix* a, Matrix* b, Matrix* result);
 bool matrixSubtraction(Matrix* a, Matrix* b, Matrix* result);

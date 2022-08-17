@@ -37,6 +37,8 @@ bool dotProduct(Matrix* a, Matrix* b, Matrix* result) {
     return true;
 }
 
+#include "../matrix/MatrixDebug.h"
+
 bool dotProductTransposeB(Matrix* a, Matrix* b, Matrix* result) {
     assert(a != NULL && b != NULL);
     assert(a->rowSize == b->rowSize);
@@ -46,9 +48,19 @@ bool dotProductTransposeB(Matrix* a, Matrix* b, Matrix* result) {
 
     if (a->rowSize != b->rowSize) return false; // invalid dimensions
 
+    printf("\ndotProductTransposeB\n");
+    displayMatrix(a);
+    printf("\n");
+    displayMatrix(b);
+    printf("\n");
+    printf("result size: %d x %d\n", result->columnSize, result->rowSize);
+
     Dimensions2D expectedDimensions = { a->columnSize, b->columnSize };
     Dimensions2D actualDimensions = getDimensions(result);
     if (!areEqualSizes(actualDimensions, expectedDimensions)) {
+        printf("actual  : %d %d\n", actualDimensions.rows, actualDimensions.cols);
+        printf("expected: %d %d\n", expectedDimensions.rows, expectedDimensions.cols);
+        assert(!"actual dimensions didn't match expected dimensions\n");
         return false; // result dimensions unexpected
     }
 
@@ -61,6 +73,45 @@ bool dotProductTransposeB(Matrix* a, Matrix* b, Matrix* result) {
                 sum += getMatrixElement(a, aRow, col) * getMatrixElement(b, bRow, col);
             }
             if(!setMatrixElement(result, aRow, bRow, sum)) {
+                return false; // attempt to index out of bounds
+            }
+        }
+    }
+
+    return true;
+}
+
+bool dotProductTransposeA(Matrix* a, Matrix* b, Matrix* result) {
+    printf("\ndotProductTransposeA\n");
+    displayMatrix(a);
+    printf("\n");
+    displayMatrix(b);
+    printf("\n");
+    printf("result size: %d x %d\n", result->columnSize, result->rowSize);
+
+    assert(a != NULL && b != NULL);
+    assert(a->columnSize == b->columnSize);
+
+    // input validation
+    if (a == NULL || b == NULL || result == NULL) return false; // invalid operands 
+
+    if (a->columnSize != b->columnSize) return false; // invalid dimensions
+
+    Dimensions2D expectedDimensions = { a->rowSize, b->rowSize };
+    Dimensions2D actualDimensions = getDimensions(result);
+    if (!areEqualSizes(actualDimensions, expectedDimensions)) {
+        return false; // result dimensions unexpected
+    }
+
+    // actual math
+    for (size_t aCol = 0; aCol < a->rowSize; aCol++) {
+        for(size_t bCol = 0; bCol < b->rowSize; bCol++) {
+            // dimensions must align so we can iterate with only 1 variable
+            double sum = 0;
+            for (size_t row = 0; row < a->columnSize; row++) {
+                sum += getMatrixElement(a, row, aCol) * getMatrixElement(b, row, bCol);
+            }
+            if(!setMatrixElement(result, aCol, bCol, sum)) {
                 return false; // attempt to index out of bounds
             }
         }

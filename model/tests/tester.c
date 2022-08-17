@@ -45,7 +45,7 @@ bool loadModelFromFile(NeuralNet* model, Vector* input, Matrix* expected, const 
     if (layerParams == NULL) return false; // failed to allocate memory for layer parameters
 
     for (uint8 i = 0; i < layerCount; i++) {
-        readCount = fscanf(file, "%d %d", &layerParams[i].size, &layerParams[i].activationFunction);
+        readCount = fscanf(file, "%d %d", &layerParams[i].size, &layerParams[i].activationFunction.function);
         if (readCount != 2) {
             free(layerParams);
             return false; // failed file read while acquiring layer parameter data
@@ -104,11 +104,11 @@ bool loadModelFromFile(NeuralNet* model, Vector* input, Matrix* expected, const 
         }
 
         // set the activation function
-        switch((size_t)layer->activationFunction) {
-            case 0: layer->activationFunction = linear; break;
-            case 1: layer->activationFunction = relu; break;
-            case 2: layer->activationFunction = softmax; break;
-            default: layer->activationFunction = linear;
+        switch((size_t)layer->activationFunction.function) {
+            case 0: layer->activationFunction.function  = linear; break;
+            case 1: layer->activationFunction.function  = relu; break;
+            case 2: layer->activationFunction.function  = softmax; break;
+            default: layer->activationFunction.function = linear;
         }
     }
 

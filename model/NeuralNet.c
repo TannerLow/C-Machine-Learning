@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "../matrix/MatrixMath.h"
 
 // helper
@@ -100,6 +101,132 @@ void deleteNeuralNet(NeuralNet* network) {
     network->totalLayerCount = 0;
 }
 
+bool copyNetworkStructure(NeuralNet* src, NeuralNet* dst) {
+    assert(src != NULL);
+    assert(dst != NULL);
+
+    if (src == NULL || dst == NULL) return false;
+
+    if (!createMatrix(&dst->inputLayer, src->inputLayer.columnSize, src->inputLayer.rowSize)) {
+        assert(!"Failed to allocate space for input matrix copy\n");
+        return false;
+    }
+
+    dst->totalLayerCount = src->totalLayerCount;
+
+    // all other layers
+    if (src->totalLayerCount > 2) {
+        uint8 numOfHiddenLayers = src->totalLayerCount - 2;
+        dst->hiddenLayers = (HiddenLayer*) malloc(numOfHiddenLayers * sizeof(HiddenLayer));
+        if (dst->hiddenLayers == NULL) {
+            assert(!"Failed to allocate memory for network copy's hidden layers\n");
+            return failAndClean(dst);
+        }
+    }
+
+    for (uint8 i = 1; i < src->totalLayerCount; i++) {
+        
+        HiddenLayer* srcLayer = NULL;
+        HiddenLayer* dstLayer = NULL;
+        // output layer is not stored in the hidden layer array
+        if (i < src->totalLayerCount-1) {
+            srcLayer = &src->hiddenLayers[i-1];
+            dstLayer = &dst->hiddenLayers[i-1];
+        }
+        else {
+            srcLayer = &src->outputLayer;
+            dstLayer = &dst->outputLayer;
+        }
+
+        dstLayer->activationFunction = srcLayer->activationFunction;
+        dstLayer->size = srcLayer->size;
+
+        if (!createMatrix(&dstLayer->activationInputs, srcLayer->activationInputs.columnSize, srcLayer->activationInputs.rowSize)) {
+            assert(!"Failed to allocate space for activations input\n");
+            return failAndClean(dst);
+        }
+
+        if (!createMatrix(&dstLayer->activationOutputs, srcLayer->activationOutputs.columnSize, srcLayer->activationOutputs.rowSize)) {
+            assert(!"Failed to allocate space for activations output\n");
+            return failAndClean(dst);
+        }
+
+        if (!createMatrix(&dstLayer->weights, srcLayer->weights.columnSize, srcLayer->weights.rowSize)) {
+            assert(!"Failed to allocate space for weights\n");
+            return failAndClean(dst);
+        }
+
+        if (!createMatrix(&dstLayer->biases, srcLayer->biases.columnSize, srcLayer->biases.rowSize)) {
+            assert(!"Failed to allocate space for biases\n");
+            return failAndClean(dst);
+        }
+    }
+
+    if (!createMatrix(&dst->inputLayer, src->inputLayer.columnSize, src->inputLayer.rowSize)) {
+        assert(!"Failed to allocate space for input layer\n");
+        return failAndClean(dst);
+    }
+
+    return true;
+}
+
+bool randomizeWeights(NeuralNet* network) {
+    assert(network != NULL);
+
+    if (network == NULL) return false;
+
+    srand(time(0));
+    
+    for (uint8 i = 1; i < network->totalLayerCount; i++) {
+
+        HiddenLayer* layer = NULL;
+        // output layer is not stored in the hidden layer array
+        if (i < network->totalLayerCount-1) {
+            layer = &network->hiddenLayers[i-1];
+        }
+        else {
+            layer = &network->outputLayer;
+        }
+
+        for (size_t col = 0; col < layer->weights.rowSize; col++) {
+            for (size_t row = 0; row < layer->weights.columnSize; row++) {
+                double random = (double) rand() * 2 / RAND_MAX - 1;
+                setMatrixElement(&layer->weights, row, col, random);
+            }
+        }
+    }
+
+    return true;
+}
+
+bool randomizeBiases(NeuralNet* network) {
+    assert(network != NULL);
+
+    if (network == NULL) return false;
+
+    srand(time(0));
+    
+    for (uint8 i = 1; i < network->totalLayerCount; i++) {
+
+        HiddenLayer* layer = NULL;
+        // output layer is not stored in the hidden layer array
+        if (i < network->totalLayerCount-1) {
+            layer = &network->hiddenLayers[i-1];
+        }
+        else {
+            layer = &network->outputLayer;
+        }
+
+        for (size_t col = 0; col < layer->biases.rowSize; col++) {
+            for (size_t row = 0; row < layer->biases.columnSize; row++) {
+                double random = (double) rand() * 2 / RAND_MAX - 1;
+                setMatrixElement(&layer->biases, row, col, random);
+            }
+        }
+    }
+    return true;
+}
+
 bool setWeights(HiddenLayer* layer, const double* values) {
     assert(layer != NULL && values != NULL);
 
@@ -145,7 +272,8 @@ void deleteHiddenLayer(HiddenLayer* layer) {
         deleteMatrix(&layer->activationInputs);
         deleteMatrix(&layer->activationOutputs);
         deleteMatrix(&layer->biases);
-        layer->activationFunction = NULL;
+        layer->activationFunction.function = NULL;
+        layer->activationFunction.derivative = NULL; //= { NULL, NULL };
     }
 }
 
@@ -202,7 +330,7 @@ bool modelPredict(NeuralNet* model, const Vector* input) {
         }
 
         // Ao(i) = f(A(i))
-        if (!layer->activationFunction(&layer->activationInputs.columns[0], &layer->activationOutputs.columns[0])) {
+        if (!layer->activationFunction.function(&layer->activationInputs.columns[0], &layer->activationOutputs.columns[0])) {
             return false; // failed to apply activation functions
         }
 
