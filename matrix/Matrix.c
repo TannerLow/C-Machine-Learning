@@ -140,11 +140,15 @@ double getMatrixElement(const Matrix* matrix, const size_t row, const size_t col
 
 bool setMatrixElement(Matrix* matrix, const size_t row, const size_t col, const double value) {
     assert(matrix != NULL);
+
     bool success = false;
     if (matrix != NULL && matrix->columns != NULL) {
         if (isValidCoordinate(matrix, row, col)) {
             matrix->columns[col].data[row] = value;
             success = true;
+        }
+        else {
+            printf("%llu, %llu, %lf\n", row, col, value);
         }
     }
     return success;
@@ -232,12 +236,12 @@ bool areEqualVectors(Vector* a, Vector* b) {
 
     bool equal = false;
     if (a->size == b->size) {
+        equal = true;
         for (size_t i = 0; i < a->size; i++) {
             if (a->data[i] != b->data[i]) {
-                return false;
+                equal = false;
             }
         }
-        equal = true;
     }
     return equal;
 }

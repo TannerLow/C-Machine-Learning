@@ -49,4 +49,4 @@ Note: If using make on a non-Windows platform, output file will be `main.out`. T
 
 ---
 
-## Total lines of C source code and headers as of 2022-08-08 = 1840 lines
+## Total lines of C source code and headers as of 2022-08-17 = 2806 lines

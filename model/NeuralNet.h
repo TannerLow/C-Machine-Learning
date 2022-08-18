@@ -13,7 +13,6 @@ typedef struct {
 typedef struct {
     uint16 size;
     ActivationFunction activationFunction;
-    //bool (*activationFunction)(const Vector*, Vector*);
 } LayerParams;
 
 typedef struct {
@@ -23,7 +22,6 @@ typedef struct {
     Matrix biases;
     uint16 size;
     ActivationFunction activationFunction;
-    //bool (*activationFunction)(const Vector*, Vector*);
 } HiddenLayer;
 
 // Output layer is just another hidden layer

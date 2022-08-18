@@ -53,13 +53,13 @@ bool dotProductTransposeB(Matrix* a, Matrix* b, Matrix* result) {
     printf("\n");
     displayMatrix(b);
     printf("\n");
-    printf("result size: %d x %d\n", result->columnSize, result->rowSize);
+    printf("result size: %llu x %llu\n", result->columnSize, result->rowSize);
 
     Dimensions2D expectedDimensions = { a->columnSize, b->columnSize };
     Dimensions2D actualDimensions = getDimensions(result);
     if (!areEqualSizes(actualDimensions, expectedDimensions)) {
-        printf("actual  : %d %d\n", actualDimensions.rows, actualDimensions.cols);
-        printf("expected: %d %d\n", expectedDimensions.rows, expectedDimensions.cols);
+        printf("actual  : %llu %llu\n", actualDimensions.rows, actualDimensions.cols);
+        printf("expected: %llu %llu\n", expectedDimensions.rows, expectedDimensions.cols);
         assert(!"actual dimensions didn't match expected dimensions\n");
         return false; // result dimensions unexpected
     }
@@ -87,7 +87,7 @@ bool dotProductTransposeA(Matrix* a, Matrix* b, Matrix* result) {
     printf("\n");
     displayMatrix(b);
     printf("\n");
-    printf("result size: %d x %d\n", result->columnSize, result->rowSize);
+    printf("result size: %llu x %llu\n", result->columnSize, result->rowSize);
 
     assert(a != NULL && b != NULL);
     assert(a->columnSize == b->columnSize);

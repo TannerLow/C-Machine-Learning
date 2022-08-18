@@ -56,5 +56,5 @@ readme_text = readme_text_tokens[0] + identifier + dynamic_text + remainder
 with open("README.md", 'w', encoding="utf-8") as file:
     file.write(readme_text)
 
-print("Total lines of C++ source code and headers as of", date.today(), '=', total, "lines")
+print("Total lines of C source code and headers as of", date.today(), '=', total, "lines")
 print("==[ Done ]==")

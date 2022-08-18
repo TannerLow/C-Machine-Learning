@@ -155,12 +155,12 @@ bool optimizeSGD(NeuralNet* model, Matrix* expected, const double learningRate) 
     }
 
     // update weights and biases
-    assert(copyMatrix(&deltaNet.outputLayer.weights, &model->outputLayer.weights));
-    assert(copyMatrix(&deltaNet.outputLayer.biases, &model->outputLayer.biases));
+    assert(matrixSubtraction(&model->outputLayer.weights, &deltaNet.outputLayer.weights, &model->outputLayer.weights));
+    assert(matrixSubtraction(&model->outputLayer.biases, &deltaNet.outputLayer.biases, &model->outputLayer.biases));
 
     for (uint8 layerIdx = 0; layerIdx < deltaNet.totalLayerCount-2; layerIdx++) { // -2 for input and output layer
-        assert(copyMatrix(&deltaNet.hiddenLayers[layerIdx].weights, &model->hiddenLayers[layerIdx].weights));
-        assert(copyMatrix(&deltaNet.hiddenLayers[layerIdx].biases, &model->hiddenLayers[layerIdx].biases));
+        assert(matrixSubtraction(&model->hiddenLayers[layerIdx].weights, &deltaNet.hiddenLayers[layerIdx].weights, &model->hiddenLayers[layerIdx].weights));
+        assert(matrixSubtraction(&model->hiddenLayers[layerIdx].biases, &deltaNet.hiddenLayers[layerIdx].biases, &model->hiddenLayers[layerIdx].biases));
     }
 
     deleteNeuralNet(&deltaNet);
