@@ -9,6 +9,7 @@
 #include "mnist/MNIST.h"
 #include "matrix/MatrixDebug.h"
 #include "learning/MachineLearning.h"
+#include <errno.h>
 
 #ifdef RUN_TESTS
 #include "matrix/tests/tester.h"
@@ -17,6 +18,9 @@
 #endif
 
 void testWithTensorFlowModel();
+void setInput(Matrix* input, ubyte* data, size_t index);
+void setExpected(Matrix* expected, uint8 digit);
+bool isCorrect(Vector* actual, Vector* expected);
 
 int main() {
 
@@ -26,229 +30,109 @@ int main() {
         ml_testAll();
     #endif
 
-    // idx_Data xTrain = idx_read("data/train-images.idx3-ubyte");
-    // // prints a rough looking 5 as proof of concept
-    // for (ubyte row = 0; row < 28; row++) {
-    //     for (ubyte col = 0; col < 28; col++) {
-    //         printf("%d ", *((ubyte*)xTrain.data + row * 28 + col) > 0 ? 1 : 0);
-    //     }
-    //     printf("\n");
-    // }
-
-    // idx_freeData(&xTrain);
-
     MNIST_Data data = loadMNISTDataSet(
         "data/train-images.idx3-ubyte", "data/train-labels.idx1-ubyte",
         "data/t10k-images.idx3-ubyte", "data/t10k-labels.idx1-ubyte"
     );
 
-    printf("MNIST loaded: %d\n", loadSuccess(&data));
-
-    freeMNISTData(&data);
+    printf("\nMNIST loaded: %d\n", loadSuccess(&data));
 
     NeuralNet model;
-
     LayerParams layerParams[3] = {
-        // format: {layer size, {activation function, derivative, optimizable?}}
-        {3 , {NULL,    NULL,     false}},
-        {15, {relu,    dRelu,    true}},
-        {4 , {softmax, dSoftmax, false}}
+        {784, _BUILTIN_NONE},
+        {500, _BUILTIN_RELU},
+        //{500, _BUILTIN_RELU},
+        {10, _BUILTIN_SOFTMAX}
     };
 
-    createNeuralNet(&model, layerParams, 3);
+    assert(createNeuralNet(&model, layerParams, 3));
+    assert(randomizeWeights(&model));
+    assert(randomizeBiases(&model));
 
-    randomizeWeights(&model);
-    randomizeBiases(&model);
+    const size_t cases = data.xTrain.size / 784;
+    const size_t batchSize = 50;
 
-    printf("weights:\n");
-    displayMatrix(&model.hiddenLayers[0].weights); 
+    Matrix input, expected;
+    assert(createMatrix(&input, 784, 1));
+    assert(createMatrix(&expected, 10, 1));
+    printf("Training on %llu cases\n", cases);
 
-    printf("biases:\n");
-    displayMatrix(&model.hiddenLayers[0].biases);
+    int correct = 0;
+    LayersUpdates updatesPool;
+    LayersUpdates localUpdates;
+    assert(createLayersUpdates(&localUpdates, &model));
+    assert(createLayersUpdates(&updatesPool, &model));
+    assert(clearLayersUpdates(&updatesPool));
 
-    Vector vector;
-    createVector(&vector, 3);
-    vector.data[0] = 0;
-    vector.data[1] = 1;
-    vector.data[2] = 0.5;
-    modelPredict(&model, &vector);
+    size_t sample = 0;
+    for (size_t i = 0; i < cases; i++) {
+        if ((sample++ != 0) && (sample % batchSize == 0)) {
+            printf("Progress: %llu/%llu\n", sample, cases);
+            printf("Acurracy: %lf\n", (double) correct / (double) i);
+            assert(updateParameters(&model, &updatesPool, 0.5 / (double) batchSize));
+            assert(clearLayersUpdates(&updatesPool));
+        }
 
-    printf("prediction certainties:\n");
+        setInput(&input, (ubyte*)data.xTrain.data, i);
+        setExpected(&expected, ((ubyte*)data.yTrain.data)[i]);
+
+        assert(modelPredict(&model, &input.columns[0]));
+        if (isCorrect(&model.outputLayer.activationOutputs.columns[0], &expected.columns[0])) correct++; 
+        assert(gradientDescent(&model, &expected, &localUpdates));
+        assert(addLayersUpdates(&localUpdates, &updatesPool, &updatesPool));
+    }
+    
+    printf("Acurracy: %lf\n", (double) correct / (double) cases);
+    printf("Validation on a 5 image:\n");
+    setInput(&input, (ubyte*)data.xTrain.data, 0);
+    setExpected(&expected, ((ubyte*)data.yTrain.data)[0]);
+    displayMatrix(&expected);
+    modelPredict(&model, &input.columns[0]);
     displayMatrix(&model.outputLayer.activationOutputs);
 
-    Matrix expected;
-    createMatrix(&expected, model.outputLayer.size, 1);
-    Vector expectedV;
-    createVector(&expectedV, 4);
-    vector.data[0] = 0;
-    vector.data[1] = 1;
-    vector.data[2] = 0;
-    vector.data[3] = 0;
-    expected.columns[0] = expectedV;
-    optimizeSGD(&model, &expected, 0.1);
-
+    printf("\nLast layer Z values\n");
+    displayMatrix(&model.outputLayer.activationInputs);
+    
+    deleteMatrix(&input);
+    deleteMatrix(&expected);
     deleteNeuralNet(&model);
+    deleteLayersUpdates(&localUpdates);
+    deleteLayersUpdates(&updatesPool);
 
-    //testWithTensorFlowModel();
+    freeMNISTData(&data);
 
     return 0;
 }
 
-// helper for testWithTensorFlowModel
-// double* loadModelDatFileData(const char* filename, const size_t size) {
-//     assert(filename);
+void setInput(Matrix* input, ubyte* data, size_t index) {
+    assert(input != NULL);
+    assert(data != NULL);
 
-//     double* data = NULL;
-//     float* dataFloats = NULL;
-//     if (filename == NULL) return data;
+    for (size_t i = 0; i < 28*28; i++) {
+        assert(setMatrixElement(input, i, 0, (double)(data[index * 28*28 + i]) / 255.0));
+    }
+}
 
-//     FILE* file = fopen(filename, "rb");
-//     if (file == NULL) return data;
+void setExpected(Matrix* expected, uint8 digit) {
+    assert(expected != NULL);
 
-//     data = (double*) malloc(size * sizeof(double));
-//     if (data == NULL) return data;
+    for (size_t i = 0; i < expected->columnSize; i++) {
+        assert(setMatrixElement(expected, i, 0, (i == digit ? 1.0 : 0.0)));
+    }
+}
 
-//     dataFloats = (float*) malloc(size * sizeof(float));
-//     if (dataFloats == NULL) {
-//         free(data);
-//         data = NULL;
-//         return data;
-//     }
+bool isCorrect(Vector* actual, Vector* expected) {
+    double max = 0;
+    int index = -1;
+    for (size_t i = 0; i < actual->size; i++) {
+        if (actual->data[i] > max) {
+            max = actual->data[i];
+            index = i;
+        }
+    }
 
-//     fread((void*)dataFloats, sizeof(float), size, file);
-
-//     for (size_t i = 0; i < size; i++) {
-//         data[i] = (double) dataFloats[i];
-//     }
-
-//     fclose(file);
-//     free(dataFloats);
-//     dataFloats = NULL;
-//     return data;
-// }
-
-// void testWithTensorFlowModel() {
-//     idx_Data xTrain = {.data = NULL};
-
-//     //     size = ( L1 +  L0 *  L1) + ( L2 +  L1 *  L2) + (L3 +  L2 * L3)
-//     size_t size = (500 + 784 * 500) + (500 + 500 * 500) + (10 + 500 * 10);
-//     size_t segmentLengths[] = { 
-//         500, 784*500, 
-//         500, 500*500, 
-//         10, 500*10 
-//     };
-
-//     double* data = loadModelDatFileData("model.dat", size);
-
-//     NeuralNet model;
-//     LayerParams layerParams[4] = {
-//         {784, 0},
-//         {500, relu},
-//         {500, relu},
-//         {10, softmax}
-//     };
-//     if (!createNeuralNet(&model, layerParams, 4)) {
-//         printf("Failed to create model (%s, %d)\n", __FILE__, __LINE__);
-//         goto CLEAN_AND_EXIT;
-//     }
-
-// // set all the weights and biases of the model
-
-//     int i = 0;
-//     size_t offset = 0;
-//     if (!setBiases(&model.hiddenLayers[0], data + offset))  {
-//         printf("Failed to load biases (%s, %d)\n", __FILE__, __LINE__);
-//         goto CLEAN_AND_EXIT;
-//     }
-
-//     offset += segmentLengths[i++];
-//     if (!setWeights(&model.hiddenLayers[0], data + offset)) {
-//         printf("Failed to load weights (%s, %d)\n", __FILE__, __LINE__);
-//         goto CLEAN_AND_EXIT;
-//     }
-
-//     offset += segmentLengths[i++];
-//     if (!setBiases(&model.hiddenLayers[1], data + offset))  {
-//         printf("Failed to load biases (%s, %d)\n", __FILE__, __LINE__);
-//         goto CLEAN_AND_EXIT;
-//     }
-
-//     offset += segmentLengths[i++];
-//     if (!setWeights(&model.hiddenLayers[1], data + offset)) {
-//         printf("Failed to load biases (%s, %d)\n", __FILE__, __LINE__);
-//         goto CLEAN_AND_EXIT;
-//     }
-
-//     offset += segmentLengths[i++];
-//     if (!setBiases(&model.outputLayer, data + offset))  {
-//         printf("Failed to load biases (%s, %d)\n", __FILE__, __LINE__);
-//         goto CLEAN_AND_EXIT;
-//     }
-
-//     offset += segmentLengths[i++];
-//     if (!setWeights(&model.outputLayer, data + offset)) {
-//         printf("Failed to load biases (%s, %d)\n", __FILE__, __LINE__);
-//         goto CLEAN_AND_EXIT;
-//     }
-
-// // setup input and predict
-
-//     xTrain = idx_read("data/train-images.idx3-ubyte");
-//     if (xTrain.data == NULL) {
-//         printf("Faild to load input data from file (%s, %d)\n", __FILE__, __LINE__);
-//         goto CLEAN_AND_EXIT;
-//     }
-
-//     Vector input;
-//     if (!createVector(&input, 28*28)) {
-//         printf("Faild to allocate memory for input vector (%s, %d)\n", __FILE__, __LINE__);
-//         goto CLEAN_AND_EXIT;
-//     }
-
-//     //image of a 5
-//     for (ubyte row = 0; row < 28; row++) {
-//         for (ubyte col = 0; col < 28; col++) {
-//             // printf("%d ", *((ubyte*)xTrain.data + row * 28 + col) > 0 ? 1 : 0);
-//             input.data[row * 28 + col] = *((ubyte*)xTrain.data + row * 28 + col) / 255.0;
-//             //printf("%lf\n", input.data[row * 28 + col]);
-//         }
-//         //printf("\n");
-//     }
-
-//     for (size_t j = 0; j < input.size; j++) {
-//         if (input.data[j] != 0) {
-//             printf("first non-zero input: %lf %llu\n", input.data[j], j);
-//             break;
-//         }
-//     }
-
-//     idx_freeData(&xTrain);
-//     //goto CLEAN_AND_EXIT;
-
-//     printf("b: %lf\n", getMatrixElement(&model.hiddenLayers[0].biases, 10, 0));
-//     printf("w: %lf\n", getMatrixElement(&model.hiddenLayers[0].weights, 0, 10));
-//     printf("b: %lf\n", getMatrixElement(&model.hiddenLayers[1].biases, 10, 0));
-//     printf("w: %lf\n", getMatrixElement(&model.hiddenLayers[1].weights, 0, 10));
-//     printf("b: %lf\n", getMatrixElement(&model.outputLayer.biases, 5, 0));
-//     printf("w: %lf\n", getMatrixElement(&model.outputLayer.weights, 0, 10));
-//     printf("input sample: %lf\n", input.data[8*28 + 7]);
-
-//     for (size_t j = 500; j < 1000; j++) {
-//         printf("%lf, ", getMatrixElement(&model.hiddenLayers[1].weights, j / 500, j % 500));
-//     }
-//      printf("\n");
-
-//     if(!modelPredict(&model, &input)) {
-//         goto CLEAN_AND_EXIT;
-//     }
-//     for (size_t j = 0; j < 10; j++) {
-//         printf("%llu: %lf\n", j, getMatrixElement(&model.outputLayer.activationOutputs, j, 0));
-//     }
-
-//     printf("Prediction: %llu\n", maxIndex(&model.outputLayer.activationOutputs.columns[0]));
-
-// CLEAN_AND_EXIT:
-//     free(data);
-//     deleteNeuralNet(&model);
-//     idx_freeData(&xTrain);
-// }
+    if (index >= 0) {
+        return expected->data[index] == 1.0;
+    }
+    return false;
+}

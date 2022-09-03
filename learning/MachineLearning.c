@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "../matrix/MatrixDebug.h"
+#include <stdlib.h>
 
 // NOTE: can const qualify if I make an in-place subtraction function
 double getCost(Matrix* actual, Matrix* expected) {
@@ -45,12 +46,75 @@ double getAverageCost(Matrix** actuals, Matrix** expecteds, const size_t cases) 
     return averageCost;
 }
 
+bool createLayersUpdates(LayersUpdates* updates, NeuralNet* model) {
+    assert(updates);
+    assert(model);
+
+    updates->size = model->totalLayerCount - 1;
+    updates->layers = (WeightsBiasesPair*) malloc(updates->size * sizeof(WeightsBiasesPair));
+    assert(updates->layers != NULL);
+
+    for (size_t i = 0; i < updates->size; i++) {
+        HiddenLayer* layer = NULL;
+        if (i != model->totalLayerCount-2) {
+            layer = &model->hiddenLayers[i];
+        }
+        else {
+            layer = &model->outputLayer;
+        }
+
+        assert(createMatrix(&updates->layers[i].weights, layer->weights.columnSize, layer->weights.rowSize));
+        assert(createMatrix(&updates->layers[i].biases, layer->biases.columnSize, layer->biases.rowSize));
+    }
+
+    return true;
+}
+
+void deleteLayersUpdates(LayersUpdates* updates) {
+    assert(updates != NULL);
+
+    for (size_t i = 0; i < updates->size; i++) {
+        deleteMatrix(&updates->layers[0].weights);
+        deleteMatrix(&updates->layers[0].biases);
+    }
+
+    free(updates->layers);
+    updates->layers = NULL;
+    updates->size = 0;
+}
+
+bool addLayersUpdates(LayersUpdates* a, LayersUpdates* b, LayersUpdates* out) {
+    assert(a != NULL);
+    assert(b != NULL);
+    assert(a->size == b->size);
+    assert(b->size == out->size);
+
+    for (size_t i = 0; i < a->size; i++) {
+        assert(matrixAddition(&a->layers[i].weights, &b->layers[i].weights, &out->layers[i].weights));
+        assert(matrixAddition(&a->layers[i].biases, &b->layers[i].biases, &out->layers[i].biases));
+    }
+
+    return true;
+}
+
+bool clearLayersUpdates(LayersUpdates* updates) {
+    assert(updates != NULL);
+
+    for (size_t i = 0; i < updates->size; i++) {
+        assert(clearMatrix(&updates->layers[i].weights));
+        assert(clearMatrix(&updates->layers[i].biases));
+    }
+
+    return true;
+}
+
 // TODO: clean up temporary matrices during this function
-bool optimizeSGD(NeuralNet* model, Matrix* expected, const double learningRate) {
+bool gradientDescent(NeuralNet* model, Matrix* expected, LayersUpdates* updates) {
     assert(model != NULL);
     assert(model->hiddenLayers != NULL || model->totalLayerCount == 2);
     assert(expected != NULL);
     assert(areEqualSizes(getDimensions(expected), getDimensions(&model->outputLayer.activationOutputs)));
+    assert(updates != NULL);
 
     if((model == NULL) ||
        (model->hiddenLayers == NULL && model->totalLayerCount != 2) ||
@@ -104,7 +168,7 @@ bool optimizeSGD(NeuralNet* model, Matrix* expected, const double learningRate) 
     // the rest
     uint8 outputLayerIdx = layerIdx + 1;
     for (/*layerIdx*/; layerIdx < model->totalLayerCount; layerIdx--) {
-        printf("layer: %d\n", layerIdx);
+        //printf("layer: %d\n", layerIdx);
         Matrix* previousLayerOutputs = NULL;
         if (layerIdx != 0) {
             previousLayerOutputs = &model->hiddenLayers[layerIdx-1].activationOutputs;
@@ -154,16 +218,38 @@ bool optimizeSGD(NeuralNet* model, Matrix* expected, const double learningRate) 
         assert(copyMatrix(&deltaNet.hiddenLayers[layerIdx].activationInputs, &deltaNet.hiddenLayers[layerIdx].biases));
     }
 
-    // update weights and biases
-    assert(matrixSubtraction(&model->outputLayer.weights, &deltaNet.outputLayer.weights, &model->outputLayer.weights));
-    assert(matrixSubtraction(&model->outputLayer.biases, &deltaNet.outputLayer.biases, &model->outputLayer.biases));
+    // calculate and store update for weights and biases to be used later in updateParameters
+    assert(copyMatrix(&deltaNet.outputLayer.weights, &updates->layers[updates->size-1].weights));
+    assert(copyMatrix(&deltaNet.outputLayer.biases, &updates->layers[updates->size-1].biases));
 
     for (uint8 layerIdx = 0; layerIdx < deltaNet.totalLayerCount-2; layerIdx++) { // -2 for input and output layer
-        assert(matrixSubtraction(&model->hiddenLayers[layerIdx].weights, &deltaNet.hiddenLayers[layerIdx].weights, &model->hiddenLayers[layerIdx].weights));
-        assert(matrixSubtraction(&model->hiddenLayers[layerIdx].biases, &deltaNet.hiddenLayers[layerIdx].biases, &model->hiddenLayers[layerIdx].biases));
+        assert(copyMatrix(&deltaNet.hiddenLayers[layerIdx].weights, &updates->layers[layerIdx].weights));
+        assert(copyMatrix(&deltaNet.hiddenLayers[layerIdx].biases, &updates->layers[layerIdx].biases));
     }
 
     deleteNeuralNet(&deltaNet);
+
+    return true;
+}
+
+bool updateParameters(NeuralNet* model, LayersUpdates* updates, const double learningRate) {
+    assert(model != NULL);
+    assert(updates != NULL);
+
+    for (uint8 layerIdx = 0; layerIdx < model->totalLayerCount-1; layerIdx++) {
+        HiddenLayer* layer = NULL;
+        if (layerIdx != model->totalLayerCount-2) {
+            layer = &model->hiddenLayers[layerIdx];
+        }   
+        else {
+            layer = &model->outputLayer;
+        }
+
+        assert(scaleMatrix(&updates->layers[layerIdx].weights, learningRate, &updates->layers[layerIdx].weights));
+        assert(matrixSubtraction(&layer->weights, &updates->layers[layerIdx].weights, &layer->weights));
+        assert(scaleMatrix(&updates->layers[layerIdx].biases, learningRate, &updates->layers[layerIdx].biases));
+        assert(matrixSubtraction(&layer->biases, &updates->layers[layerIdx].biases, &layer->biases));
+    }
 
     return true;
 }

@@ -190,7 +190,7 @@ bool randomizeWeights(NeuralNet* network) {
 
         for (size_t col = 0; col < layer->weights.rowSize; col++) {
             for (size_t row = 0; row < layer->weights.columnSize; row++) {
-                double random = (double) rand() * 2 / RAND_MAX - 1;
+                double random = (double) rand() / RAND_MAX - 0.5;
                 setMatrixElement(&layer->weights, row, col, random);
             }
         }
@@ -219,7 +219,7 @@ bool randomizeBiases(NeuralNet* network) {
 
         for (size_t col = 0; col < layer->biases.rowSize; col++) {
             for (size_t row = 0; row < layer->biases.columnSize; row++) {
-                double random = (double) rand() * 2 / RAND_MAX - 1;
+                double random = (double) rand() / RAND_MAX - 0.5;
                 setMatrixElement(&layer->biases, row, col, random);
             }
         }
@@ -233,10 +233,10 @@ bool setWeights(HiddenLayer* layer, const double* values) {
     if (layer == NULL || values == NULL) return false;
 
     size_t rows = layer->weights.columnSize;
-    printf("Setting weights\n");
-    printf("rows: %llu\n", rows);
+    //printf("Setting weights\n");
+    //printf("rows: %llu\n", rows);
     size_t cols = layer->weights.rowSize;
-    printf("cols: %llu\n", cols);
+    //printf("cols: %llu\n", cols);
     size_t i = 0;
     for (size_t col = 0; col < cols; col++) {
         for (size_t row = 0; row < rows; row++) {
@@ -273,7 +273,7 @@ void deleteHiddenLayer(HiddenLayer* layer) {
         deleteMatrix(&layer->activationOutputs);
         deleteMatrix(&layer->biases);
         layer->activationFunction.function = NULL;
-        layer->activationFunction.derivative = NULL; //= { NULL, NULL };
+        layer->activationFunction.derivative = NULL;
     }
 }
 
@@ -301,11 +301,11 @@ bool modelPredict(NeuralNet* model, const Vector* input) {
     Matrix* previousActivations = &model->inputLayer;
 
     for (uint8 i = 1; i < model->totalLayerCount; i++) {
-        printf("layer %d activations\n", i-1);
-        for (size_t j = 0; j < previousActivations->columnSize; j++) {
-            printf("%lf, ", getMatrixElement(previousActivations, j, 0));
-        }
-        printf("\n");
+        //printf("layer %d activations\n", i-1);
+        //for (size_t j = 0; j < previousActivations->columnSize; j++) {
+        //    printf("%lf, ", getMatrixElement(previousActivations, j, 0));
+        //}
+        //printf("\n");
 
         HiddenLayer* layer = NULL;
         // output layer is not stored in the hidden layer array

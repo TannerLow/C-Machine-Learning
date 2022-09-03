@@ -18,9 +18,12 @@ bool ml_testAll() {
     printf("Optimize SGD Test: %s\n", sgd ? "success" : "FAILURE");
     printf("\n");
 
-    return cost 
+    bool b = cost 
         && averageCost 
         && sgd;
+
+    assert(b);
+    return b;
 }
 
 void ml_createCostTestVector(Vector* vector, double* data, const size_t size) {
@@ -93,6 +96,8 @@ bool ml_testAverageCost() {
 }
 
 bool ml_testSGD() {
+    printf("[TEST] %s, %d\n", __FILE__, __LINE__);
+
     NeuralNet testNet;
     LayerParams layerParams[3] = {
         {3, _BUILTIN_NONE},
@@ -158,7 +163,11 @@ bool ml_testSGD() {
     // set values to be not same as prediction then run optimizer
     assert(setMatrixElement(&expectedPrediction, 0, 0, 20));
     assert(setMatrixElement(&expectedPrediction, 1, 0, 23));
-    assert(optimizeSGD(&testNet, &expectedPrediction, 1));
+    
+    LayersUpdates updates;
+    assert(createLayersUpdates(&updates, &testNet));
+    assert(gradientDescent(&testNet, &expectedPrediction, &updates));
+    assert(updateParameters(&testNet, &updates, 1));
 
     bool success = true;
     for (uint8 i = 0; i < weightedLayerCount; i++) {
@@ -191,8 +200,9 @@ bool ml_testSGD() {
         displayMatrix(&layer->weights);
         printf("\n");
         assert(areEqualMatrices(&temp, &layer->weights));
-        if (!areEqualMatrices(&temp, &layer->biases)) {
+        if (!areEqualMatrices(&temp, &layer->weights)) {
             success = false;
+            assert(success);
         }
 
         deleteMatrix(&temp);
@@ -217,6 +227,7 @@ bool ml_testSGD() {
         assert(areEqualMatrices(&temp, &layer->biases));
         if (!areEqualMatrices(&temp, &layer->biases)) {
             success = false;
+            assert(success);
         }
     }
 

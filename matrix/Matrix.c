@@ -47,6 +47,19 @@ void deleteMatrix(Matrix* matrix) {
     }
 }
 
+bool clearMatrix(Matrix* matrix) {
+    assert(matrix != NULL);
+    assert(matrix->columns != NULL);
+
+    for (size_t col = 0; col < matrix->rowSize; col++) {
+        for (size_t row = 0; row < matrix->columnSize; row++) {
+            assert(setMatrixElement(matrix, row, col, 0));
+        }
+    }
+
+    return true;
+}
+
 bool createMatrixColumns(Matrix* matrix) {
     assert(matrix != NULL);
 
@@ -128,7 +141,7 @@ bool isValidCoordinate(const Matrix* matrix, const size_t row, const size_t col)
 double getMatrixElement(const Matrix* matrix, const size_t row, const size_t col) {
     assert(matrix != NULL);
 
-    double value = DBL_MIN;
+    double value = 1.0e-300;//DBL_MIN;
     if (matrix != NULL && matrix->columns != NULL) {
         if (isValidCoordinate(matrix, row, col)) {
             value = matrix->columns[col].data[row];
@@ -147,9 +160,9 @@ bool setMatrixElement(Matrix* matrix, const size_t row, const size_t col, const 
             matrix->columns[col].data[row] = value;
             success = true;
         }
-        else {
-            printf("%llu, %llu, %lf\n", row, col, value);
-        }
+        //else {
+        //    printf("%llu, %llu, %lf\n", row, col, value);
+        //}
     }
     return success;
 }

@@ -4,6 +4,7 @@
 #include "../Matrix.h"
 #include "../MatrixMath.h"
 #include "../MatrixDebug.h"
+#include <assert.h>
 
 typedef struct {
     Matrix* matrices;
@@ -24,7 +25,7 @@ bool matrixSubtractionTest();
 bool dotProductTransposeBTest();
 bool dotProductTransposeATest();
 
-void matrix_testAll() {
+bool matrix_testAll() {
     bool dotProduct = dotProductTest();
     bool addition = matrixAdditionTest(); 
     bool scalar = matrixScaleTest();  
@@ -42,7 +43,18 @@ void matrix_testAll() {
     printf("Dot Product Transpose B Test: %s\n", dotTransposeB ? "success" : "FAILURE");
     printf("Dot Product Transpose A Test: %s\n", dotTransposeA ? "success" : "FAILURE");
 
+    bool b = dotProduct
+        && addition
+        && scalar
+        && elementWise
+        && subtraction
+        && dotTransposeB
+        && dotTransposeA;
+
+    assert(b);
+
     printf("Done Testing\n\n");
+    return b;
 }
 
 void logTestError(const char* msg, int line) {

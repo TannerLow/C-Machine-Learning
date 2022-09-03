@@ -1,6 +1,8 @@
 #include "Activations.h"
 #include <math.h>
 #include <assert.h>
+#include <errno.h>
+#include <stdio.h>
 
 // helper
 double max(const double a, const double b) {
@@ -17,7 +19,7 @@ bool relu(const Vector* x, Vector* y) {
 
     // actual math
     for (size_t i = 0; i < x->size; i++) {
-        y->data[i] = max(0, x->data[i]);
+        y->data[i] = max(0.0, x->data[i]);
     }    
 
     return true;
@@ -33,10 +35,16 @@ bool dRelu(const Vector* x, Matrix* y) {
 
     // actual math
     for (size_t i = 0; i < x->size; i++) {
-        setMatrixElement(y, i, 0, x->data[i] > 0 ? 1 : 0);
+        setMatrixElement(y, i, 0, x->data[i] > 0 ? 1.0 : 0.0);
     }    
 
     return true;
+}
+
+// helper
+double normalize(const double value) {
+    if (value < -650.0) return -650.0;
+    if (value >  650.0) return  650.0;
 }
 
 bool softmax(const Vector* x, Vector* y) {
@@ -50,12 +58,16 @@ bool softmax(const Vector* x, Vector* y) {
     // actual math
     // denominator summation
     double sum = 0;
+
+    //printf("Errno: %d\n", errno);
     for (size_t i = 0; i < x->size; i++) {
-        sum += exp(x->data[i]);
+        sum += exp(normalize(x->data[i]));
+        //printf("Errno: %d %lf\n", errno, x->data[i]);
+        assert(errno != ERANGE);
     }
     // output calculation
     for (size_t i = 0; i < x->size; i++) {
-        y->data[i] = exp(x->data[i]) / sum;
+        y->data[i] = exp(normalize(x->data[i])) / sum;
     } 
 
     return true;
@@ -114,7 +126,7 @@ bool dLinear(const Vector* x, Matrix* y) {
     if (x->size != y->columnSize) return false; // invalid dimensions
 
     for (size_t i = 0; i < x->size; i++) {
-        setMatrixElement(y, i, 0, 1);
+        setMatrixElement(y, i, 0, 1.0);
     }
 
     return true;

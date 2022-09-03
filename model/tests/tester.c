@@ -15,7 +15,10 @@ bool model_testAll() {
     printf("Model prediction test: %s\n", prediction ? "success" : "FAILURE");
     printf("\n");
 
-    return prediction;
+    bool b = prediction;
+
+    assert(b);
+    return b;
 }
 
 // assumption: the file is formatted correctly

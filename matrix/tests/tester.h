@@ -1,6 +1,8 @@
 #ifndef TESTER_H
 #define TESTER_H
 
-void matrix_testAll();
+#include <stdbool.h>
+
+bool matrix_testAll();
 
 #endif // TESTER_H
