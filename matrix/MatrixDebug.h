@@ -4,5 +4,6 @@
 #include "Matrix.h"
 
 void displayMatrix(const Matrix* m);
+void logMatrix(const Matrix* m);
 
 #endif

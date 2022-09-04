@@ -5,6 +5,7 @@
 #include "../MatrixMath.h"
 #include "../MatrixDebug.h"
 #include <assert.h>
+#include "../../logger/logger.h"
 
 typedef struct {
     Matrix* matrices;
@@ -34,14 +35,14 @@ bool matrix_testAll() {
     bool dotTransposeB = dotProductTransposeBTest();
     bool dotTransposeA = dotProductTransposeATest();
 
-    printf("\n");
-    printf("Dot Product Test: %s\n", dotProduct ? "success" : "FAILURE");
-    printf("Matrix Addition Test: %s\n", addition ? "success" : "FAILURE");
-    printf("Matrix Scalar Test: %s\n", scalar ? "success" : "FAILURE");
-    printf("Matrix Element Wise Multiplication Test: %s\n", elementWise ? "success" : "FAILURE");
-    printf("Matrix Subtraction Test: %s\n", subtraction ? "success" : "FAILURE");
-    printf("Dot Product Transpose B Test: %s\n", dotTransposeB ? "success" : "FAILURE");
-    printf("Dot Product Transpose A Test: %s\n", dotTransposeA ? "success" : "FAILURE");
+    fprintf(global_logger.file, "===[ matrix tests ]===\n");
+    fprintf(global_logger.file, "Dot Product Test: %s\n", dotProduct ? "success" : "FAILURE");
+    fprintf(global_logger.file, "Matrix Addition Test: %s\n", addition ? "success" : "FAILURE");
+    fprintf(global_logger.file, "Matrix Scalar Test: %s\n", scalar ? "success" : "FAILURE");
+    fprintf(global_logger.file, "Matrix Element Wise Multiplication Test: %s\n", elementWise ? "success" : "FAILURE");
+    fprintf(global_logger.file, "Matrix Subtraction Test: %s\n", subtraction ? "success" : "FAILURE");
+    fprintf(global_logger.file, "Dot Product Transpose B Test: %s\n", dotTransposeB ? "success" : "FAILURE");
+    fprintf(global_logger.file, "Dot Product Transpose A Test: %s\n\n", dotTransposeA ? "success" : "FAILURE");
 
     bool b = dotProduct
         && addition
@@ -52,13 +53,11 @@ bool matrix_testAll() {
         && dotTransposeA;
 
     assert(b);
-
-    printf("Done Testing\n\n");
     return b;
 }
 
 void logTestError(const char* msg, int line) {
-    printf("%s (%s, %d)\n", msg, __FILE__, line);
+    fprintf(global_logger.file, "%s (%s, %d)\n", msg, __FILE__, line);
 }
 
 // pointer to MatrixArray
@@ -86,7 +85,6 @@ void freeMatrixArray(MatrixArray* array) {
             free(array->matrices);
             array->matrices = NULL;
         }
-        //free(array);
     }
 }
 
@@ -170,8 +168,8 @@ bool loadMatricesFromFile(const char* filename, MatrixArray** array, size_t* num
                 }
             }
 
-            printf("Rows: %d, Cols: %d\n", rows, cols);
-            displayMatrix(matrix);
+            fprintf(global_logger.file, "Rows: %d, Cols: %d\n", rows, cols);
+            logMatrix(matrix);
         }
     }
 
@@ -188,7 +186,7 @@ bool dotProductTest() {
         return false;
     }
 
-    printf("Beginning dot product testing: %d test case(s)\n", size);
+    fprintf(global_logger.file, "Beginning dot product testing: %d test case(s)\n", size);
 
     bool testSuccess = true;
     for (size_t testCase = 0; testCase < size; testCase++) {
@@ -213,15 +211,15 @@ bool dotProductTest() {
             break;
         }
 
-        printf("Matrix A:\n");
-        displayMatrix(a);
-        printf("Matrix B:\n");
-        displayMatrix(b);
-        printf("Result:\n");
-        displayMatrix(&actual);
+        fprintf(global_logger.file, "Matrix A:\n");
+        logMatrix(a);
+        fprintf(global_logger.file, "Matrix B:\n");
+        logMatrix(b);
+        fprintf(global_logger.file, "Result:\n");
+        logMatrix(&actual);
 
         bool success = areEqualMatrices(expected, &actual);
-        printf("Actual equals expected: %s\n", success ? "true" : "false");
+        fprintf(global_logger.file, "Actual equals expected: %s\n", success ? "true" : "false");
         deleteMatrix(&actual);
 
         if (!success) {
@@ -243,7 +241,7 @@ bool matrixAdditionTest() {
         return false;
     }
 
-    printf("Beginning matrix addition testing: %d test case(s)\n", size);
+    fprintf(global_logger.file, "Beginning matrix addition testing: %d test case(s)\n", size);
 
     bool testSuccess = true;
     for (size_t testCase = 0; testCase < size; testCase++) {
@@ -268,15 +266,15 @@ bool matrixAdditionTest() {
             break;
         }
 
-        printf("Matrix A:\n");
-        displayMatrix(a);
-        printf("Matrix B:\n");
-        displayMatrix(b);
-        printf("Result:\n");
-        displayMatrix(&actual);
+        fprintf(global_logger.file, "Matrix A:\n");
+        logMatrix(a);
+        fprintf(global_logger.file, "Matrix B:\n");
+        logMatrix(b);
+        fprintf(global_logger.file, "Result:\n");
+        logMatrix(&actual);
 
         bool success = areEqualMatrices(expected, &actual);
-        printf("Actual equals expected: %s\n", success ? "true" : "false");
+        fprintf(global_logger.file, "Actual equals expected: %s\n", success ? "true" : "false");
         deleteMatrix(&actual);
 
         if (!success) {
@@ -298,7 +296,7 @@ bool matrixScaleTest() {
         return false;
     }
 
-    printf("Beginning matrix scalar testing: %d test case(s)\n", size);
+    fprintf(global_logger.file, "Beginning matrix scalar testing: %d test case(s)\n", size);
 
     bool testSuccess = true;
     for (size_t testCase = 0; testCase < size; testCase++) {
@@ -322,13 +320,13 @@ bool matrixScaleTest() {
             break;
         }
 
-        printf("Matrix A:\n");
-        displayMatrix(a);
-        printf("Result:\n");
-        displayMatrix(&actual);
+        fprintf(global_logger.file, "Matrix A:\n");
+        logMatrix(a);
+        fprintf(global_logger.file, "Result:\n");
+        logMatrix(&actual);
 
         bool success = areEqualMatrices(expected, &actual);
-        printf("Actual equals expected: %s\n", success ? "true" : "false");
+        fprintf(global_logger.file, "Actual equals expected: %s\n", success ? "true" : "false");
         deleteMatrix(&actual);
 
         if (!success) {
@@ -350,7 +348,7 @@ bool matrixElementWiseMultiplicationTest() {
         return false;
     }
 
-    printf("Beginning matrix element wise multiplication testing: %d test case(s)\n", size);
+    fprintf(global_logger.file, "Beginning matrix element wise multiplication testing: %d test case(s)\n", size);
 
     bool testSuccess = true;
     for (size_t testCase = 0; testCase < size; testCase++) {
@@ -375,15 +373,15 @@ bool matrixElementWiseMultiplicationTest() {
             break;
         }
 
-        printf("Matrix A:\n");
-        displayMatrix(a);
-        printf("Matrix B:\n");
-        displayMatrix(b);
-        printf("Result:\n");
-        displayMatrix(&actual);
+        fprintf(global_logger.file, "Matrix A:\n");
+        logMatrix(a);
+        fprintf(global_logger.file, "Matrix B:\n");
+        logMatrix(b);
+        fprintf(global_logger.file, "Result:\n");
+        logMatrix(&actual);
 
         bool success = areEqualMatrices(expected, &actual);
-        printf("Actual equals expected: %s\n", success ? "true" : "false");
+        fprintf(global_logger.file, "Actual equals expected: %s\n", success ? "true" : "false");
         deleteMatrix(&actual);
 
         if (!success) {
@@ -405,7 +403,7 @@ bool matrixSubtractionTest() {
         return false;
     }
 
-    printf("Beginning matrix subtraction testing: %d test case(s)\n", size);
+    fprintf(global_logger.file, "Beginning matrix subtraction testing: %d test case(s)\n", size);
 
     bool testSuccess = true;
     for (size_t testCase = 0; testCase < size; testCase++) {
@@ -430,15 +428,15 @@ bool matrixSubtractionTest() {
             break;
         }
 
-        printf("Matrix A:\n");
-        displayMatrix(a);
-        printf("Matrix B:\n");
-        displayMatrix(b);
-        printf("Result:\n");
-        displayMatrix(&actual);
+        fprintf(global_logger.file, "Matrix A:\n");
+        logMatrix(a);
+        fprintf(global_logger.file, "Matrix B:\n");
+        logMatrix(b);
+        fprintf(global_logger.file, "Result:\n");
+        logMatrix(&actual);
 
         bool success = areEqualMatrices(expected, &actual);
-        printf("Actual equals expected: %s\n", success ? "true" : "false");
+        fprintf(global_logger.file, "Actual equals expected: %s\n", success ? "true" : "false");
         deleteMatrix(&actual);
 
         if (!success) {
@@ -460,7 +458,7 @@ bool dotProductTransposeBTest() {
         return false;
     }
 
-    printf("Beginning dot product transpose B testing: %d test case(s)\n", size);
+    fprintf(global_logger.file, "Beginning dot product transpose B testing: %d test case(s)\n", size);
 
     bool testSuccess = true;
     for (size_t testCase = 0; testCase < size; testCase++) {
@@ -485,15 +483,15 @@ bool dotProductTransposeBTest() {
             break;
         }
 
-        printf("Matrix A:\n");
-        displayMatrix(a);
-        printf("Matrix B:\n");
-        displayMatrix(b);
-        printf("Result:\n");
-        displayMatrix(&actual);
+        fprintf(global_logger.file, "Matrix A:\n");
+        logMatrix(a);
+        fprintf(global_logger.file, "Matrix B:\n");
+        logMatrix(b);
+        fprintf(global_logger.file, "Result:\n");
+        logMatrix(&actual);
 
         bool success = areEqualMatrices(expected, &actual);
-        printf("Actual equals expected: %s\n", success ? "true" : "false");
+        fprintf(global_logger.file, "Actual equals expected: %s\n", success ? "true" : "false");
         deleteMatrix(&actual);
 
         if (!success) {
@@ -515,7 +513,7 @@ bool dotProductTransposeATest() {
         return false;
     }
 
-    printf("Beginning dot product transpose B testing: %d test case(s)\n", size);
+    fprintf(global_logger.file, "Beginning dot product transpose B testing: %d test case(s)\n", size);
 
     bool testSuccess = true;
     for (size_t testCase = 0; testCase < size; testCase++) {
@@ -540,15 +538,15 @@ bool dotProductTransposeATest() {
             break;
         }
 
-        printf("Matrix A:\n");
-        displayMatrix(a);
-        printf("Matrix B:\n");
-        displayMatrix(b);
-        printf("Result:\n");
-        displayMatrix(&actual);
+        fprintf(global_logger.file, "Matrix A:\n");
+        logMatrix(a);
+        fprintf(global_logger.file, "Matrix B:\n");
+        logMatrix(b);
+        fprintf(global_logger.file, "Result:\n");
+        logMatrix(&actual);
 
         bool success = areEqualMatrices(expected, &actual);
-        printf("Actual equals expected: %s\n", success ? "true" : "false");
+        fprintf(global_logger.file, "Actual equals expected: %s\n", success ? "true" : "false");
         deleteMatrix(&actual);
 
         if (!success) {

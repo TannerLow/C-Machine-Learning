@@ -1,3 +1,4 @@
 .vscode
 data/*
 model.dat
+log.txt

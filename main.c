@@ -1,3 +1,4 @@
+#include "logger/logger.h"
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -17,18 +18,25 @@
 #include "learning/tests/tester.h"
 #endif
 
+// global variable initialization
+Logger global_logger;
+
 void testWithTensorFlowModel();
 void setInput(Matrix* input, ubyte* data, size_t index);
 void setExpected(Matrix* expected, uint8 digit);
 bool isCorrect(Vector* actual, Vector* expected);
 
 int main() {
+    assert(logger_create(&global_logger, "log.txt"));
 
     #ifdef RUN_TESTS
         matrix_testAll();
         model_testAll();
         ml_testAll();
     #endif
+
+    logger_close(&global_logger);
+return 0;
 
     MNIST_Data data = loadMNISTDataSet(
         "data/train-images.idx3-ubyte", "data/train-labels.idx1-ubyte",
