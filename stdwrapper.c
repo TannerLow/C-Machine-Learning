@@ -1,4 +1,5 @@
 #include "stdwrapper.h"
+#include <assert.h>
 
 void* safeMalloc(const size_t bytes) {
     void* result = malloc(bytes);
