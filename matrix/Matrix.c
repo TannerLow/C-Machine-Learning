@@ -4,18 +4,13 @@
 #include <stdio.h>
 #include <assert.h>
 #include <float.h>
-#include "../stdwrapper.h"
+#include "../stdsafety.h"
 
 bool createVector(Vector* vector, const size_t size) {
-    assert(vector != NULL);
-
-    if (vector == NULL) return false;
+    assertOrReturnFalse(vector != NULL);
 
     vector->data = (double*) safeMalloc(sizeof(double) * size);
-    bool success = vector->data != NULL;
-    if (success) {
-        vector->size = size;
-    }
+    vector->size = size;
 
     return true;
 }
@@ -23,7 +18,7 @@ bool createVector(Vector* vector, const size_t size) {
 void deleteVector(Vector* vector) {
     assert(vector != NULL);
 
-    if (vector->data != NULL) {
+    if (vector != NULL) {
         free(vector->data);
         vector->data = NULL;
         vector->size = 0;
@@ -50,11 +45,10 @@ void deleteMatrix(Matrix* matrix) {
 
 bool clearMatrix(Matrix* matrix) {
     assert(matrix != NULL);
-    assert(matrix->columns != NULL);
 
     for (size_t col = 0; col < matrix->rowSize; col++) {
         for (size_t row = 0; row < matrix->columnSize; row++) {
-            assert(setMatrixElement(matrix, row, col, 0));
+            setMatrixElement(matrix, row, col, 0);
         }
     }
 
@@ -86,7 +80,7 @@ bool createMatrix(Matrix* matrix, const size_t rows, const size_t cols) {
 
     if (matrix == NULL) return false; // cant set columns for a nullptr
 
-    matrix->columns = (Vector*) malloc(cols * sizeof(Vector));
+    matrix->columns = (Vector*) safeMalloc(cols * sizeof(Vector));
     bool success = matrix->columns != NULL;
     if (success) {
         matrix->rowSize = cols;
