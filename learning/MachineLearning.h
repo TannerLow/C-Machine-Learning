@@ -25,7 +25,7 @@ bool addLayersUpdates(LayersUpdates* a, LayersUpdates* b, LayersUpdates* out);
 bool clearLayersUpdates(LayersUpdates* updates);
 
 // assumption: activation matrices are 1-Dimensional (N x 1)
-bool gradientDescent(NeuralNet* model, Matrix* expected, LayersUpdates* updates);
+bool gradientDescent(NeuralNet* model, Matrix* expected, LayersUpdates* updates, NeuralNet* deltaNet);
 
 // assumption: the updates provided are for the model provided
 bool updateParameters(NeuralNet* model, LayersUpdates* updates, const double learningRate);

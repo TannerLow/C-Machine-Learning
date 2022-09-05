@@ -109,28 +109,31 @@ bool clearLayersUpdates(LayersUpdates* updates) {
 }
 
 // TODO: clean up temporary matrices during this function
-bool gradientDescent(NeuralNet* model, Matrix* expected, LayersUpdates* updates) {
+bool gradientDescent(NeuralNet* model, Matrix* expected, LayersUpdates* updates, NeuralNet* deltaNet) {
     assert(model != NULL);
     assert(model->hiddenLayers != NULL || model->totalLayerCount == 2);
     assert(expected != NULL);
     assert(areEqualSizes(getDimensions(expected), getDimensions(&model->outputLayer.activationOutputs)));
     assert(updates != NULL);
+    assert(deltaNet != NULL);
 
     if((model == NULL) ||
        (model->hiddenLayers == NULL && model->totalLayerCount != 2) ||
        (expected == NULL) ||
+       (updates == NULL) ||
+       (deltaNet == NULL) ||
        (!areEqualSizes(getDimensions(expected), getDimensions(&model->outputLayer.activationOutputs)))
     ) {
         printf("Input validation failed (%s, %d)\n", __FILE__, __LINE__);
         return false;
     }
 
-    NeuralNet deltaNet;
-    assert(copyNetworkStructure(model, &deltaNet));
+    //NeuralNet deltaNet;
+    //assert(copyNetworkStructure(model, deltaNet));
 
     // L = last layer; l = hidden layer
     // dC/dA[L]
-    assert(matrixSubtraction(&model->outputLayer.activationOutputs, expected, &deltaNet.outputLayer.activationOutputs));
+    assert(matrixSubtraction(&model->outputLayer.activationOutputs, expected, &deltaNet->outputLayer.activationOutputs));
 
     // dA[L]/dZ[L]
     Matrix jacobian;
@@ -145,10 +148,10 @@ bool gradientDescent(NeuralNet* model, Matrix* expected, LayersUpdates* updates)
 
     // dC/dZ[L]
     if (model->outputLayer.activationFunction.elementWiseEligible) {
-        assert(elementWiseMultiplication(&jacobian, &deltaNet.outputLayer.activationOutputs, &deltaNet.outputLayer.activationInputs));
+        assert(elementWiseMultiplication(&jacobian, &deltaNet->outputLayer.activationOutputs, &deltaNet->outputLayer.activationInputs));
     }
     else {
-        assert(dotProductTransposeA(&jacobian, &deltaNet.outputLayer.activationOutputs, &deltaNet.outputLayer.activationInputs));
+        assert(dotProductTransposeA(&jacobian, &deltaNet->outputLayer.activationOutputs, &deltaNet->outputLayer.activationInputs));
     }
     deleteMatrix(&jacobian);
 
@@ -159,11 +162,11 @@ bool gradientDescent(NeuralNet* model, Matrix* expected, LayersUpdates* updates)
     assert(copyMatrix(&model->hiddenLayers[layerIdx].activationOutputs, &temp));
 
     // dC/dW[L]
-    assert(dotProductTransposeB(&deltaNet.outputLayer.activationInputs, &temp, &deltaNet.outputLayer.weights));
+    assert(dotProductTransposeB(&deltaNet->outputLayer.activationInputs, &temp, &deltaNet->outputLayer.weights));
     deleteMatrix(&temp);
 
     // dC/dB[L]
-    assert(copyMatrix(&deltaNet.outputLayer.activationInputs, &deltaNet.outputLayer.biases));
+    assert(copyMatrix(&deltaNet->outputLayer.activationInputs, &deltaNet->outputLayer.biases));
 
     // the rest
     uint8 outputLayerIdx = layerIdx + 1;
@@ -182,10 +185,10 @@ bool gradientDescent(NeuralNet* model, Matrix* expected, LayersUpdates* updates)
         
         // dZ[l]/dA[l] = W[l+1]
         HiddenLayer* nextLayer = (layerIdx+1 == outputLayerIdx) ? &model->outputLayer : &model->hiddenLayers[layerIdx+1];
-        HiddenLayer* deltasOfNextLayer = (layerIdx+1 == outputLayerIdx) ? &deltaNet.outputLayer : &deltaNet.hiddenLayers[layerIdx+1];;
+        HiddenLayer* deltasOfNextLayer = (layerIdx+1 == outputLayerIdx) ? &deltaNet->outputLayer : &deltaNet->hiddenLayers[layerIdx+1];;
         
         // dC/dA[l]
-        assert(dotProductTransposeA(&nextLayer->weights, &deltasOfNextLayer->activationInputs, &deltaNet.hiddenLayers[layerIdx].activationOutputs));
+        assert(dotProductTransposeA(&nextLayer->weights, &deltasOfNextLayer->activationInputs, &deltaNet->hiddenLayers[layerIdx].activationOutputs));
 
         // dA[l]/dZ[l]
         rows = layer->size;
@@ -199,10 +202,10 @@ bool gradientDescent(NeuralNet* model, Matrix* expected, LayersUpdates* updates)
 
         // dC/dZ[l]
         if (layer->activationFunction.elementWiseEligible) {
-            assert(elementWiseMultiplication(&jacobian, &deltaNet.hiddenLayers[layerIdx].activationOutputs, &deltaNet.hiddenLayers[layerIdx].activationInputs));
+            assert(elementWiseMultiplication(&jacobian, &deltaNet->hiddenLayers[layerIdx].activationOutputs, &deltaNet->hiddenLayers[layerIdx].activationInputs));
         }
         else {
-            assert(dotProductTransposeA(&jacobian, &deltaNet.hiddenLayers[layerIdx].activationOutputs, &deltaNet.hiddenLayers[layerIdx].activationInputs));
+            assert(dotProductTransposeA(&jacobian, &deltaNet->hiddenLayers[layerIdx].activationOutputs, &deltaNet->hiddenLayers[layerIdx].activationInputs));
         }
         deleteMatrix(&jacobian);
 
@@ -211,23 +214,23 @@ bool gradientDescent(NeuralNet* model, Matrix* expected, LayersUpdates* updates)
         assert(copyMatrix(previousLayerOutputs, &temp));
 
         // dC/W[l]
-        assert(dotProductTransposeB(&deltaNet.hiddenLayers[layerIdx].activationInputs, &temp, &deltaNet.hiddenLayers[layerIdx].weights));
+        assert(dotProductTransposeB(&deltaNet->hiddenLayers[layerIdx].activationInputs, &temp, &deltaNet->hiddenLayers[layerIdx].weights));
         deleteMatrix(&temp);
 
         // dC/dB[l]
-        assert(copyMatrix(&deltaNet.hiddenLayers[layerIdx].activationInputs, &deltaNet.hiddenLayers[layerIdx].biases));
+        assert(copyMatrix(&deltaNet->hiddenLayers[layerIdx].activationInputs, &deltaNet->hiddenLayers[layerIdx].biases));
     }
 
     // calculate and store update for weights and biases to be used later in updateParameters
-    assert(copyMatrix(&deltaNet.outputLayer.weights, &updates->layers[updates->size-1].weights));
-    assert(copyMatrix(&deltaNet.outputLayer.biases, &updates->layers[updates->size-1].biases));
+    assert(copyMatrix(&deltaNet->outputLayer.weights, &updates->layers[updates->size-1].weights));
+    assert(copyMatrix(&deltaNet->outputLayer.biases, &updates->layers[updates->size-1].biases));
 
-    for (uint8 layerIdx = 0; layerIdx < deltaNet.totalLayerCount-2; layerIdx++) { // -2 for input and output layer
-        assert(copyMatrix(&deltaNet.hiddenLayers[layerIdx].weights, &updates->layers[layerIdx].weights));
-        assert(copyMatrix(&deltaNet.hiddenLayers[layerIdx].biases, &updates->layers[layerIdx].biases));
+    for (uint8 layerIdx = 0; layerIdx < deltaNet->totalLayerCount-2; layerIdx++) { // -2 for input and output layer
+        assert(copyMatrix(&deltaNet->hiddenLayers[layerIdx].weights, &updates->layers[layerIdx].weights));
+        assert(copyMatrix(&deltaNet->hiddenLayers[layerIdx].biases, &updates->layers[layerIdx].biases));
     }
 
-    deleteNeuralNet(&deltaNet);
+    //deleteNeuralNet(deltaNet);
 
     return true;
 }

@@ -36,7 +36,6 @@ int main() {
     #endif
 
     logger_close(&global_logger);
-return 0;
 
     MNIST_Data data = loadMNISTDataSet(
         "data/train-images.idx3-ubyte", "data/train-labels.idx1-ubyte",
@@ -56,6 +55,9 @@ return 0;
     assert(createNeuralNet(&model, layerParams, 3));
     assert(randomizeWeights(&model));
     assert(randomizeBiases(&model));
+
+    NeuralNet deltaNet;
+    assert(copyNetworkStructure(&model, &deltaNet));
 
     const size_t cases = data.xTrain.size / 784;
     const size_t batchSize = 50;
@@ -85,8 +87,8 @@ return 0;
         setExpected(&expected, ((ubyte*)data.yTrain.data)[i]);
 
         assert(modelPredict(&model, &input.columns[0]));
-        if (isCorrect(&model.outputLayer.activationOutputs.columns[0], &expected.columns[0])) correct++; 
-        assert(gradientDescent(&model, &expected, &localUpdates));
+        if (isCorrect(&model.outputLayer.activationOutputs.columns[0], &expected.columns[0])) correct++;
+        assert(gradientDescent(&model, &expected, &localUpdates, &deltaNet));
         assert(addLayersUpdates(&localUpdates, &updatesPool, &updatesPool));
     }
     
@@ -94,13 +96,18 @@ return 0;
     printf("Validation on a 5 image:\n");
     setInput(&input, (ubyte*)data.xTrain.data, 0);
     setExpected(&expected, ((ubyte*)data.yTrain.data)[0]);
+
+    printf("expected:\n");
     displayMatrix(&expected);
+
     modelPredict(&model, &input.columns[0]);
+    printf("prediction:\n");
     displayMatrix(&model.outputLayer.activationOutputs);
 
     printf("\nLast layer Z values\n");
     displayMatrix(&model.outputLayer.activationInputs);
     
+    // clean up
     deleteMatrix(&input);
     deleteMatrix(&expected);
     deleteNeuralNet(&model);

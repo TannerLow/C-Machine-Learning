@@ -49,4 +49,48 @@ Note: If using make on a non-Windows platform, output file will be `main.out`. T
 
 ---
 
-## Total lines of C source code and headers as of 2022-08-19 = 2718 lines
+## Total lines of C source code and headers as of 2022-09-05 = 2976 lines
+
+---
+
+Results of a single epoch of training on mnist data
+```
+Progress: 60000/60000
+Acurracy: 0.685811
+Acurracy: 0.685817
+Validation on a 5 image:
+expected:
+ 0.000000
+ 0.000000
+ 0.000000
+ 0.000000
+ 0.000000
+ 1.000000
+ 0.000000
+ 0.000000
+ 0.000000
+ 0.000000
+
+prediction:
+ 0.000000
+ 0.000000
+ 0.000000
+ 0.000003
+ 0.000000
+ 0.999997
+ 0.000000
+ 0.000000
+ 0.000000
+ 0.000000
+
+Last layer Z values
+-6.212742
+-15.317670
+ 29.143690
+-37.539016
+ 41.817514
+-11.402895
+ 0.583664
+-27.166940
+-33.834893
+```

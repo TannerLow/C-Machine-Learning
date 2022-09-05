@@ -7,16 +7,17 @@
 #include <stdio.h>
 #include <assert.h>
 #include "../../matrix/MatrixDebug.h"
+#include "../../logger/logger.h"
 
 bool ml_testAll() {
     bool cost = ml_testCost();
     bool averageCost = ml_testAverageCost();
     bool sgd = ml_testSGD();
 
-    printf("Cost Test        : %s\n", cost ? "success" : "FAILURE");
-    printf("Average Cost Test: %s\n", averageCost ? "success" : "FAILURE");
-    printf("Optimize SGD Test: %s\n", sgd ? "success" : "FAILURE");
-    printf("\n");
+    fprintf(global_logger.file, "Cost Test        : %s\n", cost ? "success" : "FAILURE");
+    fprintf(global_logger.file, "Average Cost Test: %s\n", averageCost ? "success" : "FAILURE");
+    fprintf(global_logger.file, "Optimize SGD Test: %s\n", sgd ? "success" : "FAILURE");
+    fprintf(global_logger.file, "\n");
 
     bool b = cost 
         && averageCost 
@@ -45,7 +46,7 @@ void ml_createCostTestMatrix(Matrix* matrix, Vector* data) {
 }
 
 bool ml_testCost() {
-    printf("[TEST] %s, %d\n", __FILE__, __LINE__);
+    fprintf(global_logger.file, "[TEST] %s, %d\n", __FILE__, __LINE__);
     const double expectedCost = 6.5;
     double actualData[] = {6, 9};
     double expectedData[] = {9, 7};
@@ -59,13 +60,13 @@ bool ml_testCost() {
 
     const double actualCost = getCost(&actual, &expected);
 
-    printf("actual cost: %lf, expected cost: %lf\n", actualCost, expectedCost);
+    fprintf(global_logger.file, "actual cost: %lf, expected cost: %lf\n", actualCost, expectedCost);
     assert(actualCost == expectedCost);
     return actualCost == expectedCost; 
 }
 
 bool ml_testAverageCost() {
-    printf("[TEST] %s, %d\n", __FILE__, __LINE__);
+    fprintf(global_logger.file, "[TEST] %s, %d\n", __FILE__, __LINE__);
     const double expectedCost = 13.25;
     double actualData1[] = {6, 9};
     double actualData2[] = {7, 9};
@@ -90,13 +91,13 @@ bool ml_testAverageCost() {
 
     const double actualCost = getAverageCost(actuals, expecteds, 2);
 
-    printf("actual cost: %lf, expected cost: %lf\n", actualCost, expectedCost);
+    fprintf(global_logger.file, "actual cost: %lf, expected cost: %lf\n", actualCost, expectedCost);
     assert(actualCost == expectedCost);
     return actualCost == expectedCost;
 }
 
 bool ml_testSGD() {
-    printf("[TEST] %s, %d\n", __FILE__, __LINE__);
+    fprintf(global_logger.file, "[TEST] %s, %d\n", __FILE__, __LINE__);
 
     NeuralNet testNet;
     LayerParams layerParams[3] = {
@@ -164,9 +165,12 @@ bool ml_testSGD() {
     assert(setMatrixElement(&expectedPrediction, 0, 0, 20));
     assert(setMatrixElement(&expectedPrediction, 1, 0, 23));
     
+    NeuralNet deltaNet;
+    assert(copyNetworkStructure(&testNet, &deltaNet));
+
     LayersUpdates updates;
     assert(createLayersUpdates(&updates, &testNet));
-    assert(gradientDescent(&testNet, &expectedPrediction, &updates));
+    assert(gradientDescent(&testNet, &expectedPrediction, &updates, &deltaNet));
     assert(updateParameters(&testNet, &updates, 1));
 
     bool success = true;
@@ -194,11 +198,11 @@ bool ml_testSGD() {
             }
         }
 
-        printf("Weight comparison:\n");
-        displayMatrix(&temp);
-        printf("\n");
-        displayMatrix(&layer->weights);
-        printf("\n");
+        fprintf(global_logger.file, "Weight comparison:\n");
+        logMatrix(&temp);
+        fprintf(global_logger.file, "\n");
+        logMatrix(&layer->weights);
+        fprintf(global_logger.file, "\n");
         assert(areEqualMatrices(&temp, &layer->weights));
         if (!areEqualMatrices(&temp, &layer->weights)) {
             success = false;
@@ -219,11 +223,11 @@ bool ml_testSGD() {
             }
         }
 
-        printf("Biases comparison:\n");
-        displayMatrix(&temp);
-        printf("\n");
-        displayMatrix(&layer->biases);
-        printf("\n");
+        fprintf(global_logger.file, "Biases comparison:\n");
+        logMatrix(&temp);
+        fprintf(global_logger.file, "\n");
+        logMatrix(&layer->biases);
+        fprintf(global_logger.file, "\n");
         assert(areEqualMatrices(&temp, &layer->biases));
         if (!areEqualMatrices(&temp, &layer->biases)) {
             success = false;

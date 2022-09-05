@@ -6,14 +6,15 @@
 #include <stdlib.h>
 #include "../Activations.h"
 #include "../../matrix/MatrixDebug.h"
+#include "../../logger/logger.h"
 
 bool loadModelFromFile(NeuralNet* model, Vector* input, Matrix* expected, const char* filename);
 
 bool model_testAll() {
     bool prediction = model_testPrediction();
 
-    printf("Model prediction test: %s\n", prediction ? "success" : "FAILURE");
-    printf("\n");
+    fprintf(global_logger.file, "Model prediction test: %s\n", prediction ? "success" : "FAILURE");
+    fprintf(global_logger.file, "\n");
 
     bool b = prediction;
 
@@ -170,32 +171,32 @@ void testPredictionClean(NeuralNet* model, Matrix* expected ,Vector* input) {
 }
 
 bool model_testPrediction() {
-    printf("[TEST] %s, %d\n", __FILE__, __LINE__);
+    fprintf(global_logger.file, "[TEST] %s, %d\n", __FILE__, __LINE__);
 
     NeuralNet model;
     Matrix expected;
     Vector input;
 
     if(!loadModelFromFile(&model, &input, &expected, "model/tests/tests_data/prediction.test")) {
-        printf("Failed to load Test data\n");
+        fprintf(global_logger.file, "Failed to load Test data\n");
         return false; // failed to load model and/or expected output
     }
 
     if (!modelPredict(&model, &input)) {
-        printf("Failed to perform prediction\n");
+        fprintf(global_logger.file, "Failed to perform prediction\n");
         testPredictionClean(&model, &expected, &input);
         return false; // failed to perform prediction using model
     }
 
-    printf("Expected:\n");
-    displayMatrix(&model.outputLayer.activationOutputs);
+    fprintf(global_logger.file, "Expected:\n");
+    logMatrix(&model.outputLayer.activationOutputs);
 
-    printf("Actual:\n");
-    displayMatrix(&expected);
+    fprintf(global_logger.file, "Actual:\n");
+    logMatrix(&expected);
 
     // Verify that the output is the same as the expected
     if (!areEqualMatrices(&model.outputLayer.activationOutputs, &expected)) {
-        printf("Actual output did not match expectations\n");
+        fprintf(global_logger.file, "Actual output did not match expectations\n");
         testPredictionClean(&model, &expected, &input);
         return false; // model prediction results not as expected
     }
