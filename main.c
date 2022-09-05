@@ -26,6 +26,7 @@ void setInput(Matrix* input, ubyte* data, size_t index);
 void setExpected(Matrix* expected, uint8 digit);
 bool isCorrect(Vector* actual, Vector* expected);
 
+
 int main() {
     assert(logger_create(&global_logger, "log.txt"));
 

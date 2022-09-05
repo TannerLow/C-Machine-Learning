@@ -35,7 +35,7 @@ bool isValidCoordinate(const Matrix* matrix, const size_t row, const size_t col)
 bool copyVector(const Vector* a, Vector* b);
 bool copyMatrix(const Matrix* a, Matrix* b);
 
-// getter assumption: expected output for invalid get is 1.0e-300 //minimum double value
+// getters assumptions: expected output for invalid get is 1.0e-300
 double getMatrixElement(const Matrix* matrix, const size_t row, const size_t col);
 bool setMatrixElement(Matrix* matrix, const size_t row, const size_t col, const double value);
 double getVectorElement(const Vector* vector, const size_t i);

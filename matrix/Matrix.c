@@ -4,19 +4,20 @@
 #include <stdio.h>
 #include <assert.h>
 #include <float.h>
+#include "../stdwrapper.h"
 
 bool createVector(Vector* vector, const size_t size) {
     assert(vector != NULL);
 
     if (vector == NULL) return false;
 
-    vector->data = (double*) malloc(sizeof(double) * size);
+    vector->data = (double*) safeMalloc(sizeof(double) * size);
     bool success = vector->data != NULL;
     if (success) {
         vector->size = size;
     }
 
-    return success;
+    return true;
 }
 
 void deleteVector(Vector* vector) {
